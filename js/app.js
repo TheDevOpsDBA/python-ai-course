@@ -6,8 +6,12 @@ let currentModule = 0;
 let currentSection = 0;
 
 // Gemini API Configuration
-// Key is stored in browser localStorage — never in source code
-let GEMINI_API_KEY = localStorage.getItem("gemini_api_key") || "";
+// Key is injected at deploy time via GitHub Actions
+let GEMINI_API_KEY = "__GEMINI_API_KEY__";
+// Fallback to localStorage if placeholder not replaced (local dev)
+if (GEMINI_API_KEY === "__GEMINI_API_KEY__") {
+    GEMINI_API_KEY = localStorage.getItem("gemini_api_key") || "";
+}
 
 async function initializeApp() {
 
