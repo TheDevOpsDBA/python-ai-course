@@ -95,7 +95,8 @@ function renderSection() {
         currentSection;
 
     document.getElementById("description").innerHTML =
-        section.brief || section.description;
+        `<h3 class="section-heading">${section.title}</h3>` +
+        (section.brief || section.description);
 
     // Initialize reveal animation for bullet points
     initReveal();
