@@ -5,6 +5,10 @@ let pyodide;
 let currentModule = 0;
 let currentSection = 0;
 
+// Gemini API Configuration
+// Get your free key at: https://aistudio.google.com/apikey
+const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+
 async function initializeApp() {
 
     const editorEl = document.getElementById("editor");
@@ -364,10 +368,92 @@ function toggleDescription() {
 
 window.onload = initializeApp;
 
+// ===== AI Chat Functions =====
+
+function toggleChat() {
+    const body = document.getElementById("chatBody");
+    body.classList.toggle("open");
+    const btn = document.querySelector(".chat-toggle");
+    btn.textContent = body.classList.contains("open") ? "▲" : "▼";
+}
+
+function addChatMessage(text, role) {
+    const messages = document.getElementById("chatMessages");
+    const msg = document.createElement("div");
+    msg.className = `chat-msg ${role}`;
+    msg.innerHTML = text;
+    messages.appendChild(msg);
+    messages.scrollTop = messages.scrollHeight;
+    return msg;
+}
+
+async function sendChat() {
+    const input = document.getElementById("chatInput");
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = "";
+    addChatMessage(question, "user");
+
+    if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+        addChatMessage("⚠️ Please set your Gemini API key in js/app.js to enable AI chat.", "bot");
+        return;
+    }
+
+    const loadingMsg = addChatMessage("Thinking...", "bot loading");
+
+    const code = editor ? editor.getValue() : "";
+    const section = courseData.modules[currentModule].sections[currentSection];
+
+    const prompt = `You are a helpful Python tutor for IT professionals learning Python for automation and AI. 
+The student is currently studying: "${section.title}"
+
+Here is the code they are looking at:
+\`\`\`python
+${code}
+\`\`\`
+
+The student asks: "${question}"
+
+Give a clear, concise answer (2-4 sentences max). Use simple language. If referring to specific lines, mention the line content. Do not use markdown headers. You can use backticks for inline code.`;
+
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 300
+                    }
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.candidates && data.candidates[0]) {
+            const answer = data.candidates[0].content.parts[0].text;
+            loadingMsg.remove();
+            addChatMessage(answer.replace(/`([^`]+)`/g, "<code>$1</code>"), "bot");
+        } else {
+            loadingMsg.remove();
+            addChatMessage("Sorry, I couldn't generate a response. Try rephrasing your question.", "bot");
+        }
+    } catch (error) {
+        loadingMsg.remove();
+        addChatMessage("Connection error. Please check your API key and internet connection.", "bot");
+    }
+}
+
 // Keyboard navigation — right arrow reveals/advances, left arrow goes back
 document.addEventListener("keydown", function(e) {
-    // Don't intercept if user is typing in editor or textarea
-    if (e.target.tagName === "TEXTAREA" || e.target.classList.contains("CodeMirror")) return;
+    // Don't intercept if user is typing in editor, textarea, or chat input
+    if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
+    if (e.target.classList.contains("CodeMirror")) return;
     if (document.querySelector(".CodeMirror-focused")) return;
 
     if (e.key === "ArrowRight") {
