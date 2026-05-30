@@ -6,8 +6,8 @@ let currentModule = 0;
 let currentSection = 0;
 
 // Gemini API Configuration
-// Get your free key at: https://aistudio.google.com/apikey
-const GEMINI_API_KEY = "AQ.Ab8RN6KATXcylvZ-VUnm7ATIclhAYAZNbGCm0rW2N-ZKdXbMjQ";
+// Key is stored in browser localStorage — never in source code
+let GEMINI_API_KEY = localStorage.getItem("gemini_api_key") || "";
 
 async function initializeApp() {
 
@@ -395,9 +395,15 @@ async function sendChat() {
     input.value = "";
     addChatMessage(question, "user");
 
-    if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
-        addChatMessage("⚠️ Please set your Gemini API key in js/app.js to enable AI chat.", "bot");
-        return;
+    if (!GEMINI_API_KEY) {
+        const key = prompt("Enter the AI API key (provided by your instructor):");
+        if (key && key.trim()) {
+            GEMINI_API_KEY = key.trim();
+            localStorage.setItem("gemini_api_key", GEMINI_API_KEY);
+        } else {
+            addChatMessage("No API key provided. Ask your instructor for the key.", "bot");
+            return;
+        }
     }
 
     const loadingMsg = addChatMessage("Thinking...", "bot loading");

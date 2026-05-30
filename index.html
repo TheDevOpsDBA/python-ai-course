@@ -88,7 +88,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 </div>
 <div id="chatBody" class="chat-body">
 <div class="chat-disclaimer">
-⚠️ This AI assistant is powered by a PowerShell Academy-owned API key provided as a courtesy. It may be discontinued at any time without notice. Please use it only for questions related to the course code examples. PowerShell Academy is not liable for AI responses.
+⚠️ This AI assistant is powered by a PowerShell Academy-owned API key provided as a courtesy. It may be discontinued at any time without notice. Please use it only for questions related to the course code examples. PowerShell Academy is not liable for AI responses. <a href="#" onclick="localStorage.removeItem('gemini_api_key');GEMINI_API_KEY='';alert('API key cleared.');return false;" style="color:#7fdbca;">Reset key</a>
 </div>
 <div id="chatMessages" class="chat-messages">
 <div class="chat-msg bot">Hi! I can explain the code in the editor. Ask me anything about it.</div>
