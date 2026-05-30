@@ -95,9 +95,12 @@ function renderSection() {
         currentSection;
 
     let content = section.brief || section.description;
-    // Replace the existing h4 heading with the full section title
-    content = content.replace(/<h4>.*?<\/h4>/, `<h3 class="section-heading">${section.title}</h3>`);
+    // Remove the h4 heading from content (it's shown separately above diagram)
+    content = content.replace(/<h4>.*?<\/h4>/, "");
     document.getElementById("description").innerHTML = content;
+
+    // Set heading above diagram
+    document.getElementById("sectionHeading").textContent = section.title;
 
     // Initialize reveal animation for bullet points
     initReveal();
