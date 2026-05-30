@@ -11,6 +11,24 @@ header{
     padding:18px;
     text-align:center;
     border-bottom:1px solid #2a2a4a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+}
+
+.header-logo{
+    height:45px;
+    width:45px;
+    border-radius:8px;
+    object-fit:contain;
+}
+
+.logo-link{
+    position:absolute;
+    left:18px;
+    display:flex;
+    align-items:center;
 }
 
 .toolbar{

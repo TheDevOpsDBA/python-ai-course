@@ -2,7 +2,76 @@ const courseData = {
   "modules": [
     {
       "id": "module0",
-      "title": "Module 0: Python Installation & Setup",
+      "title": "Module 1: Why IT Pros Need Python for AI",
+      "sections": [
+        {
+          "id": "m1s1",
+          "title": "1.1 AI is Not Optional",
+          "description": "<p><strong>Artificial Intelligence is reshaping every layer of IT infrastructure.</strong> From automated incident response to predictive capacity planning, AI-driven tools are becoming standard in modern operations — and Python is the language that powers them.</p><p>As an IT professional, understanding Python gives you the ability to build, extend, and troubleshoot the AI pipelines your organisation depends on. Waiting is no longer a viable strategy.</p><h4>Why This Matters</h4><ul><li><strong>AI tools are Python-first:</strong> TensorFlow, PyTorch, scikit-learn, and LangChain are all Python libraries.</li><li><strong>Automation reduces toil:</strong> Repetitive tasks — log parsing, alerting, provisioning — can be scripted and handed off.</li><li><strong>Career relevance:</strong> Roles in DevOps, SRE, and cloud engineering increasingly require scripting and AI integration skills.</li></ul><h4>Key Takeaway</h4><p>Python is not a developer-only skill. It is the operational language of the AI era.</p>",
+          "syntax": "# Python is interpreted — run line by line\nprint(\"Hello, Infrastructure\")   # Output to console\n\n# Variables need no type declaration\nhost = \"server-01\"\nport = 8080\nactive = True\n\n# Basic conditional\nif active:\n    print(f\"{host} is listening on port {port}\")",
+          "examples": [
+            {
+              "name": "Hello World",
+              "code": "# Your first Python statement\nprint(\"Hello from Python\")\nprint(\"Python version: 3.x\")\nprint(\"Ready for AI and Automation\")"
+            },
+            {
+              "name": "Infrastructure Check",
+              "code": "# Simulating a basic infrastructure health check\ncpu_usage = 88\nmemory_usage = 72\ndisk_usage = 91\n\nprint(\"=== Infrastructure Health Check ===\")\nprint(f\"CPU:    {cpu_usage}%\")\nprint(f\"Memory: {memory_usage}%\")\nprint(f\"Disk:   {disk_usage}%\")\n\nif cpu_usage > 80 or disk_usage > 90:\n    print(\"\\n[ALERT] One or more thresholds exceeded!\")\nelse:\n    print(\"\\n[OK] All systems within normal range.\")"
+            },
+            {
+              "name": "AI Relevance",
+              "code": "# Demonstrating Python's role in AI workflows\ntools = [\"TensorFlow\", \"PyTorch\", \"scikit-learn\", \"LangChain\", \"Pandas\"]\n\nprint(\"Top Python AI/ML Libraries:\")\nfor i, tool in enumerate(tools, 1):\n    print(f\"  {i}. {tool}\")\n\nprint(\"\\nAll of these run on Python.\")\nprint(\"Python is the language of AI infrastructure.\")"
+            }
+          ],
+          "brief": "<h4>AI is Not Optional</h4><ul><li>AI tools are Python-first — TensorFlow, PyTorch, LangChain</li><li>Automation reduces toil — scripting replaces repetitive manual work</li><li>Career relevance — DevOps, SRE, and cloud roles now require Python + AI skills</li><li>Python is the operational language of the AI era</li></ul>"
+        },
+        {
+          "id": "m1s2",
+          "title": "1.2 Python in Infrastructure",
+          "description": "<p><strong>Python has become the de facto scripting language for infrastructure engineering.</strong> Whether you are managing cloud resources, configuring network devices, or orchestrating containers, Python provides the libraries and flexibility to automate at scale.</p><p>Unlike Bash, Python handles complex data structures, API responses, and error conditions gracefully — making it the right tool for modern infrastructure tasks.</p><h4>Common Infrastructure Use Cases</h4><ul><li><strong>Cloud APIs:</strong> boto3 (AWS), azure-sdk, google-cloud — all Python.</li><li><strong>Configuration Management:</strong> Ansible playbooks call Python modules under the hood.</li><li><strong>Monitoring &amp; Alerting:</strong> Parse logs, query metrics APIs, trigger alerts programmatically.</li><li><strong>Network Automation:</strong> Netmiko and NAPALM use Python to configure routers and switches.</li></ul><h4>Python vs Bash</h4><p>Bash is excellent for simple shell pipelines. Python wins when you need structured data, error handling, reusable functions, or integration with external APIs.</p>",
+          "syntax": "# Working with system-level data\nimport os\n\n# Environment variables\nhost = os.environ.get(\"HOSTNAME\", \"unknown\")\n\n# String formatting\nprint(f\"Running on: {host}\")\n\n# Lists and iteration\nservers = [\"web-01\", \"web-02\", \"db-01\"]\nfor server in servers:\n    print(f\"Checking: {server}\")",
+          "examples": [
+            {
+              "name": "Server Inventory",
+              "code": "# Managing a simple server inventory\nservers = [\n    {\"name\": \"web-01\", \"role\": \"web\",      \"status\": \"online\"},\n    {\"name\": \"web-02\", \"role\": \"web\",      \"status\": \"online\"},\n    {\"name\": \"db-01\",  \"role\": \"database\", \"status\": \"offline\"},\n    {\"name\": \"cache-01\",\"role\": \"cache\",   \"status\": \"online\"},\n]\n\nprint(f\"{'Server':<12} {'Role':<12} {'Status'}\")\nprint(\"-\" * 35)\nfor s in servers:\n    print(f\"{s['name']:<12} {s['role']:<12} {s['status']}\")\n\noffline = [s['name'] for s in servers if s['status'] == 'offline']\nprint(f\"\\nOffline servers: {offline}\")"
+            },
+            {
+              "name": "Threshold Monitor",
+              "code": "# Infrastructure threshold monitoring\nmetrics = {\n    \"web-01\":  {\"cpu\": 45, \"mem\": 60},\n    \"web-02\":  {\"cpu\": 92, \"mem\": 78},\n    \"db-01\":   {\"cpu\": 30, \"mem\": 95},\n}\n\nCPU_LIMIT = 85\nMEM_LIMIT = 90\n\nprint(\"=== Threshold Scan ===\")\nfor host, data in metrics.items():\n    alerts = []\n    if data[\"cpu\"] > CPU_LIMIT:\n        alerts.append(f\"CPU {data['cpu']}%\")\n    if data[\"mem\"] > MEM_LIMIT:\n        alerts.append(f\"MEM {data['mem']}%\")\n    status = \"ALERT: \" + \", \".join(alerts) if alerts else \"OK\"\n    print(f\"  {host:<10} {status}\")"
+            },
+            {
+              "name": "Log Parser",
+              "code": "# Parsing structured log entries\nlogs = [\n    \"2024-01-15 08:12:01 INFO  web-01 Request processed in 120ms\",\n    \"2024-01-15 08:12:05 ERROR web-02 Connection timeout after 30s\",\n    \"2024-01-15 08:12:09 WARN  db-01  Query took 4500ms\",\n    \"2024-01-15 08:12:11 ERROR web-01 Disk write failed: /var/log\",\n]\n\nerrors = [line for line in logs if \"ERROR\" in line]\nwarnings = [line for line in logs if \"WARN\" in line]\n\nprint(f\"Total log entries : {len(logs)}\")\nprint(f\"Errors            : {len(errors)}\")\nprint(f\"Warnings          : {len(warnings)}\")\nprint(\"\\nErrors found:\")\nfor e in errors:\n    print(f\"  {e}\")"
+            }
+          ],
+          "brief": "<h4>Python in Infrastructure</h4><ul><li>Cloud APIs — boto3 (AWS), azure-sdk, google-cloud</li><li>Config Management — Ansible uses Python modules internally</li><li>Monitoring — parse logs, query metrics, trigger alerts</li><li>Network Automation — Netmiko, NAPALM for routers/switches</li><li>Python wins over Bash for structured data, error handling, and API integration</li></ul>"
+        },
+        {
+          "id": "m1s3",
+          "title": "1.3 Automation Benefits",
+          "description": "<p><strong>Automation is the practice of replacing manual, repetitive tasks with code that executes reliably, consistently, and at scale.</strong> In infrastructure, this means fewer human errors, faster response times, and engineers freed up for higher-value work.</p><p>Python automation ranges from simple scripts that rename files to complex pipelines that provision cloud infrastructure, run tests, and deploy applications — all without human intervention.</p><h4>The Four Pillars of Automation Value</h4><ul><li><strong>Speed:</strong> A script that takes 2 seconds replaces a task that took 20 minutes.</li><li><strong>Consistency:</strong> Code runs the same way every time — no missed steps, no typos.</li><li><strong>Scale:</strong> Run the same logic against 1 server or 1,000 servers with no extra effort.</li><li><strong>Auditability:</strong> Code is version-controlled — you know exactly what ran and when.</li></ul><h4>Where to Start</h4><p>Identify the most repetitive task in your current role. If you do it more than twice a week, it is a candidate for automation.</p>",
+          "syntax": "# Automation pattern: loop + condition + action\nservers = [\"web-01\", \"web-02\", \"db-01\"]\n\nfor server in servers:\n    # Simulate a check\n    is_healthy = True  # replace with real check\n    if not is_healthy:\n        print(f\"Restarting {server}...\")\n    else:\n        print(f\"{server}: OK\")",
+          "examples": [
+            {
+              "name": "Task Timer",
+              "code": "# Comparing manual vs automated task time\ntasks = [\n    {\"name\": \"Restart 10 services\",   \"manual_min\": 30, \"auto_sec\": 5},\n    {\"name\": \"Parse 500 log files\",    \"manual_min\": 60, \"auto_sec\": 8},\n    {\"name\": \"Provision 5 VMs\",        \"manual_min\": 45, \"auto_sec\": 12},\n    {\"name\": \"Generate health report\", \"manual_min\": 20, \"auto_sec\": 2},\n]\n\nprint(f\"{'Task':<30} {'Manual':>10} {'Automated':>12} {'Savings':>10}\")\nprint(\"-\" * 65)\nfor t in tasks:\n    saved = t['manual_min'] * 60 - t['auto_sec']\n    print(f\"{t['name']:<30} {t['manual_min']:>8}min {t['auto_sec']:>10}sec {saved:>8}sec\")"
+            },
+            {
+              "name": "Bulk Operation",
+              "code": "# Simulating a bulk configuration push\nservers = [\"web-01\", \"web-02\", \"web-03\", \"web-04\", \"web-05\"]\nconfig = {\"timeout\": 30, \"max_connections\": 500, \"log_level\": \"INFO\"}\n\nprint(\"Pushing configuration to all servers...\\n\")\nsuccess = 0\nfor server in servers:\n    # Simulate deployment (all succeed here)\n    print(f\"  [{server}] Applying config... Done\")\n    success += 1\n\nprint(f\"\\nResult: {success}/{len(servers)} servers updated successfully.\")"
+            },
+            {
+              "name": "Automation ROI",
+              "code": "# Calculate automation return on investment\nscript_build_hours = 4\nscript_runs_per_week = 5\nminutes_saved_per_run = 25\nweeks = 52\n\ntotal_minutes_saved = script_runs_per_week * minutes_saved_per_run * weeks\ntotal_hours_saved = total_minutes_saved / 60\nbuild_cost_hours = script_build_hours\n\nprint(\"=== Automation ROI Calculator ===\")\nprint(f\"Script build time    : {build_cost_hours} hours\")\nprint(f\"Runs per week        : {script_runs_per_week}\")\nprint(f\"Time saved per run   : {minutes_saved_per_run} minutes\")\nprint(f\"Over {weeks} weeks:\")\nprint(f\"  Total time saved   : {total_hours_saved:.1f} hours\")\nprint(f\"  Net gain           : {total_hours_saved - build_cost_hours:.1f} hours\")"
+            }
+          ],
+          "brief": "<h4>Automation Benefits</h4><ul><li><strong>Speed</strong> — 2 seconds vs 20 minutes</li><li><strong>Consistency</strong> — no missed steps, no typos</li><li><strong>Scale</strong> — same logic for 1 or 1,000 servers</li><li><strong>Auditability</strong> — version-controlled, traceable</li><li>Rule of thumb: if you do it more than twice a week, automate it</li></ul>"
+        }
+      ]
+    },
+    {
+      "id": "module1",
+      "title": "Module 2: Python Installation & Setup",
       "sections": [
         {
           "id": "m0s1",
@@ -73,77 +142,8 @@ const courseData = {
       ]
     },
     {
-      "id": "module1",
-      "title": "Module 1: Why IT Pros Need Python for AI",
-      "sections": [
-        {
-          "id": "m1s1",
-          "title": "1.1 AI is Not Optional",
-          "description": "<p><strong>Artificial Intelligence is reshaping every layer of IT infrastructure.</strong> From automated incident response to predictive capacity planning, AI-driven tools are becoming standard in modern operations — and Python is the language that powers them.</p><p>As an IT professional, understanding Python gives you the ability to build, extend, and troubleshoot the AI pipelines your organisation depends on. Waiting is no longer a viable strategy.</p><h4>Why This Matters</h4><ul><li><strong>AI tools are Python-first:</strong> TensorFlow, PyTorch, scikit-learn, and LangChain are all Python libraries.</li><li><strong>Automation reduces toil:</strong> Repetitive tasks — log parsing, alerting, provisioning — can be scripted and handed off.</li><li><strong>Career relevance:</strong> Roles in DevOps, SRE, and cloud engineering increasingly require scripting and AI integration skills.</li></ul><h4>Key Takeaway</h4><p>Python is not a developer-only skill. It is the operational language of the AI era.</p>",
-          "syntax": "# Python is interpreted — run line by line\nprint(\"Hello, Infrastructure\")   # Output to console\n\n# Variables need no type declaration\nhost = \"server-01\"\nport = 8080\nactive = True\n\n# Basic conditional\nif active:\n    print(f\"{host} is listening on port {port}\")",
-          "examples": [
-            {
-              "name": "Hello World",
-              "code": "# Your first Python statement\nprint(\"Hello from Python\")\nprint(\"Python version: 3.x\")\nprint(\"Ready for AI and Automation\")"
-            },
-            {
-              "name": "Infrastructure Check",
-              "code": "# Simulating a basic infrastructure health check\ncpu_usage = 88\nmemory_usage = 72\ndisk_usage = 91\n\nprint(\"=== Infrastructure Health Check ===\")\nprint(f\"CPU:    {cpu_usage}%\")\nprint(f\"Memory: {memory_usage}%\")\nprint(f\"Disk:   {disk_usage}%\")\n\nif cpu_usage > 80 or disk_usage > 90:\n    print(\"\\n[ALERT] One or more thresholds exceeded!\")\nelse:\n    print(\"\\n[OK] All systems within normal range.\")"
-            },
-            {
-              "name": "AI Relevance",
-              "code": "# Demonstrating Python's role in AI workflows\ntools = [\"TensorFlow\", \"PyTorch\", \"scikit-learn\", \"LangChain\", \"Pandas\"]\n\nprint(\"Top Python AI/ML Libraries:\")\nfor i, tool in enumerate(tools, 1):\n    print(f\"  {i}. {tool}\")\n\nprint(\"\\nAll of these run on Python.\")\nprint(\"Python is the language of AI infrastructure.\")"
-            }
-          ],
-          "brief": "<h4>AI is Not Optional</h4><ul><li>AI tools are Python-first — TensorFlow, PyTorch, LangChain</li><li>Automation reduces toil — scripting replaces repetitive manual work</li><li>Career relevance — DevOps, SRE, and cloud roles now require Python + AI skills</li><li>Python is the operational language of the AI era</li></ul>"
-        },
-        {
-          "id": "m1s2",
-          "title": "1.2 Python in Infrastructure",
-          "description": "<p><strong>Python has become the de facto scripting language for infrastructure engineering.</strong> Whether you are managing cloud resources, configuring network devices, or orchestrating containers, Python provides the libraries and flexibility to automate at scale.</p><p>Unlike Bash, Python handles complex data structures, API responses, and error conditions gracefully — making it the right tool for modern infrastructure tasks.</p><h4>Common Infrastructure Use Cases</h4><ul><li><strong>Cloud APIs:</strong> boto3 (AWS), azure-sdk, google-cloud — all Python.</li><li><strong>Configuration Management:</strong> Ansible playbooks call Python modules under the hood.</li><li><strong>Monitoring &amp; Alerting:</strong> Parse logs, query metrics APIs, trigger alerts programmatically.</li><li><strong>Network Automation:</strong> Netmiko and NAPALM use Python to configure routers and switches.</li></ul><h4>Python vs Bash</h4><p>Bash is excellent for simple shell pipelines. Python wins when you need structured data, error handling, reusable functions, or integration with external APIs.</p>",
-          "syntax": "# Working with system-level data\nimport os\n\n# Environment variables\nhost = os.environ.get(\"HOSTNAME\", \"unknown\")\n\n# String formatting\nprint(f\"Running on: {host}\")\n\n# Lists and iteration\nservers = [\"web-01\", \"web-02\", \"db-01\"]\nfor server in servers:\n    print(f\"Checking: {server}\")",
-          "examples": [
-            {
-              "name": "Server Inventory",
-              "code": "# Managing a simple server inventory\nservers = [\n    {\"name\": \"web-01\", \"role\": \"web\",      \"status\": \"online\"},\n    {\"name\": \"web-02\", \"role\": \"web\",      \"status\": \"online\"},\n    {\"name\": \"db-01\",  \"role\": \"database\", \"status\": \"offline\"},\n    {\"name\": \"cache-01\",\"role\": \"cache\",   \"status\": \"online\"},\n]\n\nprint(f\"{'Server':<12} {'Role':<12} {'Status'}\")\nprint(\"-\" * 35)\nfor s in servers:\n    print(f\"{s['name']:<12} {s['role']:<12} {s['status']}\")\n\noffline = [s['name'] for s in servers if s['status'] == 'offline']\nprint(f\"\\nOffline servers: {offline}\")"
-            },
-            {
-              "name": "Threshold Monitor",
-              "code": "# Infrastructure threshold monitoring\nmetrics = {\n    \"web-01\":  {\"cpu\": 45, \"mem\": 60},\n    \"web-02\":  {\"cpu\": 92, \"mem\": 78},\n    \"db-01\":   {\"cpu\": 30, \"mem\": 95},\n}\n\nCPU_LIMIT = 85\nMEM_LIMIT = 90\n\nprint(\"=== Threshold Scan ===\")\nfor host, data in metrics.items():\n    alerts = []\n    if data[\"cpu\"] > CPU_LIMIT:\n        alerts.append(f\"CPU {data['cpu']}%\")\n    if data[\"mem\"] > MEM_LIMIT:\n        alerts.append(f\"MEM {data['mem']}%\")\n    status = \"ALERT: \" + \", \".join(alerts) if alerts else \"OK\"\n    print(f\"  {host:<10} {status}\")"
-            },
-            {
-              "name": "Log Parser",
-              "code": "# Parsing structured log entries\nlogs = [\n    \"2024-01-15 08:12:01 INFO  web-01 Request processed in 120ms\",\n    \"2024-01-15 08:12:05 ERROR web-02 Connection timeout after 30s\",\n    \"2024-01-15 08:12:09 WARN  db-01  Query took 4500ms\",\n    \"2024-01-15 08:12:11 ERROR web-01 Disk write failed: /var/log\",\n]\n\nerrors = [line for line in logs if \"ERROR\" in line]\nwarnings = [line for line in logs if \"WARN\" in line]\n\nprint(f\"Total log entries : {len(logs)}\")\nprint(f\"Errors            : {len(errors)}\")\nprint(f\"Warnings          : {len(warnings)}\")\nprint(\"\\nErrors found:\")\nfor e in errors:\n    print(f\"  {e}\")"
-            }
-          ],
-          "brief": "<h4>Python in Infrastructure</h4><ul><li>Cloud APIs — boto3 (AWS), azure-sdk, google-cloud</li><li>Config Management — Ansible uses Python modules internally</li><li>Monitoring — parse logs, query metrics, trigger alerts</li><li>Network Automation — Netmiko, NAPALM for routers/switches</li><li>Python wins over Bash for structured data, error handling, and API integration</li></ul>"
-        },
-        {
-          "id": "m1s3",
-          "title": "1.3 Automation Benefits",
-          "description": "<p><strong>Automation is the practice of replacing manual, repetitive tasks with code that executes reliably, consistently, and at scale.</strong> In infrastructure, this means fewer human errors, faster response times, and engineers freed up for higher-value work.</p><p>Python automation ranges from simple scripts that rename files to complex pipelines that provision cloud infrastructure, run tests, and deploy applications — all without human intervention.</p><h4>The Four Pillars of Automation Value</h4><ul><li><strong>Speed:</strong> A script that takes 2 seconds replaces a task that took 20 minutes.</li><li><strong>Consistency:</strong> Code runs the same way every time — no missed steps, no typos.</li><li><strong>Scale:</strong> Run the same logic against 1 server or 1,000 servers with no extra effort.</li><li><strong>Auditability:</strong> Code is version-controlled — you know exactly what ran and when.</li></ul><h4>Where to Start</h4><p>Identify the most repetitive task in your current role. If you do it more than twice a week, it is a candidate for automation.</p>",
-          "syntax": "# Automation pattern: loop + condition + action\nservers = [\"web-01\", \"web-02\", \"db-01\"]\n\nfor server in servers:\n    # Simulate a check\n    is_healthy = True  # replace with real check\n    if not is_healthy:\n        print(f\"Restarting {server}...\")\n    else:\n        print(f\"{server}: OK\")",
-          "examples": [
-            {
-              "name": "Task Timer",
-              "code": "# Comparing manual vs automated task time\ntasks = [\n    {\"name\": \"Restart 10 services\",   \"manual_min\": 30, \"auto_sec\": 5},\n    {\"name\": \"Parse 500 log files\",    \"manual_min\": 60, \"auto_sec\": 8},\n    {\"name\": \"Provision 5 VMs\",        \"manual_min\": 45, \"auto_sec\": 12},\n    {\"name\": \"Generate health report\", \"manual_min\": 20, \"auto_sec\": 2},\n]\n\nprint(f\"{'Task':<30} {'Manual':>10} {'Automated':>12} {'Savings':>10}\")\nprint(\"-\" * 65)\nfor t in tasks:\n    saved = t['manual_min'] * 60 - t['auto_sec']\n    print(f\"{t['name']:<30} {t['manual_min']:>8}min {t['auto_sec']:>10}sec {saved:>8}sec\")"
-            },
-            {
-              "name": "Bulk Operation",
-              "code": "# Simulating a bulk configuration push\nservers = [\"web-01\", \"web-02\", \"web-03\", \"web-04\", \"web-05\"]\nconfig = {\"timeout\": 30, \"max_connections\": 500, \"log_level\": \"INFO\"}\n\nprint(\"Pushing configuration to all servers...\\n\")\nsuccess = 0\nfor server in servers:\n    # Simulate deployment (all succeed here)\n    print(f\"  [{server}] Applying config... Done\")\n    success += 1\n\nprint(f\"\\nResult: {success}/{len(servers)} servers updated successfully.\")"
-            },
-            {
-              "name": "Automation ROI",
-              "code": "# Calculate automation return on investment\nscript_build_hours = 4\nscript_runs_per_week = 5\nminutes_saved_per_run = 25\nweeks = 52\n\ntotal_minutes_saved = script_runs_per_week * minutes_saved_per_run * weeks\ntotal_hours_saved = total_minutes_saved / 60\nbuild_cost_hours = script_build_hours\n\nprint(\"=== Automation ROI Calculator ===\")\nprint(f\"Script build time    : {build_cost_hours} hours\")\nprint(f\"Runs per week        : {script_runs_per_week}\")\nprint(f\"Time saved per run   : {minutes_saved_per_run} minutes\")\nprint(f\"Over {weeks} weeks:\")\nprint(f\"  Total time saved   : {total_hours_saved:.1f} hours\")\nprint(f\"  Net gain           : {total_hours_saved - build_cost_hours:.1f} hours\")"
-            }
-          ],
-          "brief": "<h4>Automation Benefits</h4><ul><li><strong>Speed</strong> — 2 seconds vs 20 minutes</li><li><strong>Consistency</strong> — no missed steps, no typos</li><li><strong>Scale</strong> — same logic for 1 or 1,000 servers</li><li><strong>Auditability</strong> — version-controlled, traceable</li><li>Rule of thumb: if you do it more than twice a week, automate it</li></ul>"
-        }
-      ]
-    },
-    {
       "id": "module2",
-      "title": "Module 2: Python Basics",
+      "title": "Module 3: Python Basics",
       "sections": [
         {
           "id": "m2s1",
@@ -212,7 +212,7 @@ const courseData = {
     },
     {
       "id": "module3",
-      "title": "Module 3: Collections",
+      "title": "Module 4: Collections",
       "sections": [
         {
           "id": "m3s1",
@@ -281,7 +281,7 @@ const courseData = {
     },
     {
       "id": "module4",
-      "title": "Module 4: Operators",
+      "title": "Module 5: Operators",
       "sections": [
         {
           "id": "m4s1",
@@ -350,7 +350,7 @@ const courseData = {
     },
     {
       "id": "module5",
-      "title": "Module 5: Control Flow",
+      "title": "Module 6: Control Flow",
       "sections": [
         {
           "id": "m5s1",
@@ -419,7 +419,7 @@ const courseData = {
     },
     {
       "id": "module6",
-      "title": "Module 6: Functions",
+      "title": "Module 7: Functions",
       "sections": [
         {
           "id": "m6s1",
@@ -488,7 +488,7 @@ const courseData = {
     },
     {
       "id": "module7",
-      "title": "Module 7: Error Handling",
+      "title": "Module 8: Error Handling",
       "sections": [
         {
           "id": "m7s1",
@@ -536,7 +536,7 @@ const courseData = {
     },
     {
       "id": "module8",
-      "title": "Module 8: File Handling",
+      "title": "Module 9: File Handling",
       "sections": [
         {
           "id": "m8s1",
@@ -605,7 +605,7 @@ const courseData = {
     },
     {
       "id": "module9",
-      "title": "Module 9: Modules & Packages",
+      "title": "Module 10: Modules & Packages",
       "sections": [
         {
           "id": "m9s1",
@@ -677,7 +677,7 @@ const courseData = {
     },
     {
       "id": "module10",
-      "title": "Module 10: Object-Oriented Programming",
+      "title": "Module 11: Object-Oriented Programming",
       "sections": [
         {
           "id": "m10s1",
@@ -737,7 +737,7 @@ const courseData = {
     },
     {
       "id": "module11",
-      "title": "Module 11: Python for Automation",
+      "title": "Module 12: Python for Automation",
       "sections": [
         {
           "id": "m11s1",
@@ -801,7 +801,7 @@ const courseData = {
     },
     {
       "id": "module12",
-      "title": "Module 12: Intro to AI & Machine Learning",
+      "title": "Module 13: Intro to AI & Machine Learning",
       "sections": [
         {
           "id": "m12s1",
@@ -865,7 +865,7 @@ const courseData = {
     },
     {
       "id": "module13",
-      "title": "Module 13: Intro to Generative AI",
+      "title": "Module 14: Intro to Generative AI",
       "sections": [
         {
           "id": "m13s1",
@@ -925,7 +925,7 @@ const courseData = {
     },
     {
       "id": "module14",
-      "title": "Module 14: Python for AI Projects",
+      "title": "Module 15: Python for AI Projects",
       "sections": [
         {
           "id": "m14s1",
