@@ -347,3 +347,17 @@ select{
     font-size:13px;
     border-radius:6px;
 }
+
+.CodeMirror-selected{
+    background:#533483 !important;
+}
+
+.CodeMirror-focused .CodeMirror-selected{
+    background:#533483 !important;
+}
+
+.CodeMirror-line::selection,
+.CodeMirror-line > span::selection,
+.CodeMirror-line > span > span::selection{
+    background:#533483 !important;
+}

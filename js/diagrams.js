@@ -568,6 +568,429 @@ function getDiagramSVG(type, label) {
             <text x="300" y="172" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
         </svg>`,
 
+                "import-modules": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="160" height="50" rx="10" fill="#533483"/>
+<text x="110" y="40" fill="#7fdbca" font-size="11" text-anchor="middle">import os</text>
+<text x="110" y="57" fill="white" font-size="11" text-anchor="middle">Entire module</text>
+<rect x="220" y="20" width="160" height="50" rx="10" fill="#e94560"/>
+<text x="300" y="40" fill="white" font-size="11" text-anchor="middle">from os import path</text>
+<text x="300" y="57" fill="white" font-size="11" text-anchor="middle">Specific item</text>
+<rect x="410" y="20" width="160" height="50" rx="10" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="490" y="40" fill="#7fdbca" font-size="11" text-anchor="middle">import numpy as np</text>
+<text x="490" y="57" fill="white" font-size="11" text-anchor="middle">Alias</text>
+<rect x="30" y="90" width="540" height="55" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="300" y="112" fill="#7fdbca" font-size="12" text-anchor="middle">Python Module Search Path</text>
+<text x="80" y="132" fill="white" font-size="11">Current Dir</text>
+<text x="200" y="132" fill="white" font-size="11">→ site-packages</text>
+<text x="350" y="132" fill="white" font-size="11">→ Standard Library</text>
+<text x="500" y="132" fill="white" font-size="11">→ sys.path</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "pip-packages": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="25" width="120" height="55" rx="10" fill="#533483"/>
+<text x="90" y="48" fill="#7fdbca" font-size="11" text-anchor="middle">PyPI</text>
+<text x="90" y="65" fill="white" font-size="10" text-anchor="middle">400K+ packages</text>
+<line x1="150" y1="52" x2="190" y2="52" stroke="#7fdbca" stroke-width="2"/>
+<rect x="190" y="25" width="140" height="55" rx="10" fill="#e94560"/>
+<text x="260" y="48" fill="white" font-size="11" text-anchor="middle">pip install</text>
+<text x="260" y="65" fill="white" font-size="10" text-anchor="middle">Download + Install</text>
+<line x1="330" y1="52" x2="370" y2="52" stroke="#7fdbca" stroke-width="2"/>
+<rect x="370" y="25" width="120" height="55" rx="10" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="430" y="48" fill="#7fdbca" font-size="11" text-anchor="middle">.venv/</text>
+<text x="430" y="65" fill="white" font-size="10" text-anchor="middle">site-packages</text>
+<line x1="490" y1="52" x2="520" y2="52" stroke="#7fdbca" stroke-width="2"/>
+<rect x="520" y="30" width="60" height="45" rx="8" fill="#7fdbca"/>
+<text x="550" y="57" fill="#1a1a2e" font-size="11" text-anchor="middle">Ready</text>
+<rect x="30" y="100" width="540" height="45" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="120" fill="#7fdbca" font-size="11">pip install flask</text>
+<text x="210" y="120" fill="#7fdbca" font-size="11">pip freeze > requirements.txt</text>
+<text x="460" y="120" fill="#7fdbca" font-size="11">pip list</text>
+<text x="55" y="137" fill="#aaa" font-size="10">install</text>
+<text x="280" y="137" fill="#aaa" font-size="10">save</text>
+<text x="470" y="137" fill="#aaa" font-size="10">view</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "custom-modules": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="160" height="65" rx="10" fill="#533483"/>
+<text x="110" y="42" fill="#7fdbca" font-size="11" text-anchor="middle">monitoring.py</text>
+<text x="110" y="58" fill="white" font-size="10" text-anchor="middle">def check_cpu()</text>
+<text x="110" y="72" fill="white" font-size="10" text-anchor="middle">def check_mem()</text>
+<rect x="220" y="20" width="160" height="65" rx="10" fill="#e94560"/>
+<text x="300" y="42" fill="white" font-size="11" text-anchor="middle">networking.py</text>
+<text x="300" y="58" fill="white" font-size="10" text-anchor="middle">def ping()</text>
+<text x="300" y="72" fill="white" font-size="10" text-anchor="middle">def traceroute()</text>
+<rect x="410" y="20" width="160" height="65" rx="10" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="490" y="42" fill="#7fdbca" font-size="11" text-anchor="middle">config.py</text>
+<text x="490" y="58" fill="white" font-size="10" text-anchor="middle">THRESHOLDS = {}</text>
+<text x="490" y="72" fill="white" font-size="10" text-anchor="middle">load_env()</text>
+<line x1="110" y1="85" x2="300" y2="105" stroke="#7fdbca" stroke-width="2"/>
+<line x1="300" y1="85" x2="300" y2="105" stroke="#7fdbca" stroke-width="2"/>
+<line x1="490" y1="85" x2="300" y2="105" stroke="#7fdbca" stroke-width="2"/>
+<rect x="200" y="105" width="200" height="40" rx="8" fill="#16213e" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="300" y="122" fill="white" font-size="11" text-anchor="middle">main.py</text>
+<text x="300" y="137" fill="#7fdbca" font-size="10" text-anchor="middle">from monitoring import check_cpu</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "classes-objects": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="15" width="250" height="75" rx="10" fill="#533483"/>
+<text x="155" y="35" fill="#7fdbca" font-size="12" text-anchor="middle">class Server:</text>
+<text x="155" y="52" fill="white" font-size="10" text-anchor="middle">name, ip, port (attributes)</text>
+<text x="155" y="66" fill="white" font-size="10" text-anchor="middle">get_url(), restart() (methods)</text>
+<text x="155" y="80" fill="#aaa" font-size="10" text-anchor="middle">BLUEPRINT</text>
+<line x1="280" y1="52" x2="320" y2="35" stroke="#7fdbca" stroke-width="2"/>
+<line x1="280" y1="52" x2="320" y2="70" stroke="#7fdbca" stroke-width="2"/>
+<rect x="320" y="15" width="130" height="40" rx="8" fill="#e94560"/>
+<text x="385" y="32" fill="white" font-size="10" text-anchor="middle">web01 = Server()</text>
+<text x="385" y="46" fill="white" font-size="9" text-anchor="middle">name="web-01"</text>
+<rect x="320" y="60" width="130" height="40" rx="8" fill="#e94560"/>
+<text x="385" y="77" fill="white" font-size="10" text-anchor="middle">db01 = Server()</text>
+<text x="385" y="91" fill="white" font-size="9" text-anchor="middle">name="db-01"</text>
+<rect x="470" y="15" width="110" height="85" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="525" y="35" fill="#7fdbca" font-size="10" text-anchor="middle">Objects</text>
+<text x="525" y="52" fill="white" font-size="9" text-anchor="middle">Own data</text>
+<text x="525" y="66" fill="white" font-size="9" text-anchor="middle">Shared methods</text>
+<text x="525" y="80" fill="white" font-size="9" text-anchor="middle">Independent</text>
+<rect x="30" y="110" width="540" height="35" rx="6" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="300" y="132" fill="white" font-size="11" text-anchor="middle">Class = Blueprint    |    Object = Instance    |    self = current object</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "inheritance": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="200" y="10" width="200" height="45" rx="10" fill="#533483"/>
+<text x="300" y="30" fill="#7fdbca" font-size="11" text-anchor="middle">class Server (Parent)</text>
+<text x="300" y="46" fill="white" font-size="10" text-anchor="middle">name, ip, status, describe()</text>
+<line x1="250" y1="55" x2="120" y2="80" stroke="#7fdbca" stroke-width="2"/>
+<line x1="350" y1="55" x2="480" y2="80" stroke="#7fdbca" stroke-width="2"/>
+<rect x="30" y="80" width="180" height="50" rx="8" fill="#e94560"/>
+<text x="120" y="100" fill="white" font-size="11" text-anchor="middle">class WebServer(Server)</text>
+<text x="120" y="117" fill="white" font-size="10" text-anchor="middle">+ domain, get_url()</text>
+<rect x="390" y="80" width="180" height="50" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="480" y="100" fill="#7fdbca" font-size="11" text-anchor="middle">class DBServer(Server)</text>
+<text x="480" y="117" fill="white" font-size="10" text-anchor="middle">+ engine, backup()</text>
+<rect x="100" y="145" width="400" height="25" rx="5" fill="#16213e"/>
+<text x="300" y="162" fill="white" font-size="11" text-anchor="middle">Children inherit all parent attributes + add their own</text>
+<text x="300" y="178" fill="#aaa" font-size="11" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "encapsulation": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="250" height="80" rx="10" fill="#533483"/>
+<text x="155" y="40" fill="#7fdbca" font-size="11" text-anchor="middle">Internal (Private)</text>
+<text x="155" y="58" fill="white" font-size="10" text-anchor="middle">self._cpu = 0</text>
+<text x="155" y="73" fill="white" font-size="10" text-anchor="middle">self._status = "offline"</text>
+<text x="155" y="88" fill="#aaa" font-size="9" text-anchor="middle">Hidden implementation</text>
+<rect x="320" y="20" width="250" height="80" rx="10" fill="#0f3460" stroke="#7fdbca" stroke-width="2"/>
+<text x="445" y="40" fill="#7fdbca" font-size="11" text-anchor="middle">Public Interface</text>
+<text x="445" y="58" fill="white" font-size="10" text-anchor="middle">@property cpu → validated</text>
+<text x="445" y="73" fill="white" font-size="10" text-anchor="middle">@cpu.setter → 0-100 only</text>
+<text x="445" y="88" fill="#aaa" font-size="9" text-anchor="middle">Clean, safe access</text>
+<line x1="280" y1="60" x2="320" y2="60" stroke="#e94560" stroke-width="3"/>
+<rect x="100" y="115" width="400" height="35" rx="6" fill="#16213e" stroke="#e94560" stroke-width="1"/>
+<text x="300" y="130" fill="#e94560" font-size="11" text-anchor="middle">s.cpu = 150 → ValueError!</text>
+<text x="300" y="144" fill="white" font-size="10" text-anchor="middle">Properties validate data — prevent invalid state</text>
+<text x="300" y="172" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "api-calls": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="30" width="130" height="55" rx="10" fill="#533483"/>
+<text x="95" y="52" fill="#7fdbca" font-size="11" text-anchor="middle">Python Script</text>
+<text x="95" y="68" fill="white" font-size="10" text-anchor="middle">requests.get()</text>
+<line x1="160" y1="57" x2="200" y2="57" stroke="#7fdbca" stroke-width="2"/>
+<rect x="200" y="25" width="100" height="65" rx="8" fill="#e94560"/>
+<text x="250" y="47" fill="white" font-size="10" text-anchor="middle">HTTP</text>
+<text x="250" y="62" fill="white" font-size="10" text-anchor="middle">GET/POST</text>
+<text x="250" y="77" fill="white" font-size="9" text-anchor="middle">JSON</text>
+<line x1="300" y1="57" x2="340" y2="57" stroke="#7fdbca" stroke-width="2"/>
+<rect x="340" y="30" width="130" height="55" rx="10" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="405" y="52" fill="#7fdbca" font-size="11" text-anchor="middle">REST API</text>
+<text x="405" y="68" fill="white" font-size="10" text-anchor="middle">/api/servers</text>
+<line x1="470" y1="57" x2="500" y2="57" stroke="#7fdbca" stroke-width="2"/>
+<rect x="500" y="35" width="80" height="45" rx="8" fill="#7fdbca"/>
+<text x="540" y="55" fill="#1a1a2e" font-size="10" text-anchor="middle">Response</text>
+<text x="540" y="68" fill="#1a1a2e" font-size="9" text-anchor="middle">200 OK</text>
+<rect x="30" y="105" width="540" height="40" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="100" y="122" fill="#7fdbca" font-size="10">GET → Read</text>
+<text x="220" y="122" fill="#7fdbca" font-size="10">POST → Create</text>
+<text x="340" y="122" fill="#7fdbca" font-size="10">PUT → Update</text>
+<text x="460" y="122" fill="#7fdbca" font-size="10">DELETE → Remove</text>
+<text x="300" y="138" fill="white" font-size="10" text-anchor="middle">response.status_code | response.json() | response.text</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "task-scripts": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="120" height="50" rx="8" fill="#533483"/>
+<text x="90" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">Schedule</text>
+<text x="90" y="57" fill="white" font-size="10" text-anchor="middle">cron / Task</text>
+<line x1="150" y1="45" x2="180" y2="45" stroke="#7fdbca" stroke-width="2"/>
+<rect x="180" y="15" width="140" height="60" rx="8" fill="#e94560"/>
+<text x="250" y="35" fill="white" font-size="10" text-anchor="middle">script.py</text>
+<text x="250" y="50" fill="white" font-size="9" text-anchor="middle">argparse → work</text>
+<text x="250" y="63" fill="white" font-size="9" text-anchor="middle">→ log → exit code</text>
+<line x1="320" y1="45" x2="350" y2="45" stroke="#7fdbca" stroke-width="2"/>
+<rect x="350" y="20" width="110" height="50" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="405" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">logging</text>
+<text x="405" y="57" fill="white" font-size="10" text-anchor="middle">INFO/WARN/ERR</text>
+<line x1="460" y1="45" x2="490" y2="45" stroke="#7fdbca" stroke-width="2"/>
+<rect x="490" y="25" width="80" height="40" rx="8" fill="#7fdbca"/>
+<text x="530" y="42" fill="#1a1a2e" font-size="10" text-anchor="middle">Exit 0/1</text>
+<text x="530" y="55" fill="#1a1a2e" font-size="9" text-anchor="middle">OK / Fail</text>
+<rect x="30" y="90" width="540" height="55" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="110" fill="#7fdbca" font-size="10">Pattern:</text>
+<text x="55" y="128" fill="white" font-size="10">if __name__ == "__main__": sys.exit(main())</text>
+<text x="350" y="110" fill="#7fdbca" font-size="10">Scheduling:</text>
+<text x="350" y="128" fill="white" font-size="10">cron (Linux) | Task Scheduler (Win)</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "infra-automation": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="25" width="100" height="45" rx="8" fill="#533483"/>
+<text x="80" y="45" fill="#7fdbca" font-size="10" text-anchor="middle">Discover</text>
+<text x="80" y="59" fill="white" font-size="9" text-anchor="middle">list servers</text>
+<line x1="130" y1="47" x2="155" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="155" y="25" width="100" height="45" rx="8" fill="#e94560"/>
+<text x="205" y="45" fill="white" font-size="10" text-anchor="middle">Check</text>
+<text x="205" y="59" fill="white" font-size="9" text-anchor="middle">current state</text>
+<line x1="255" y1="47" x2="280" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="280" y="25" width="100" height="45" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="330" y="45" fill="#7fdbca" font-size="10" text-anchor="middle">Act</text>
+<text x="330" y="59" fill="white" font-size="9" text-anchor="middle">apply config</text>
+<line x1="380" y1="47" x2="405" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="405" y="25" width="100" height="45" rx="8" fill="#533483"/>
+<text x="455" y="45" fill="white" font-size="10" text-anchor="middle">Report</text>
+<text x="455" y="59" fill="white" font-size="9" text-anchor="middle">log results</text>
+<line x1="505" y1="47" x2="530" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="530" y="30" width="50" height="35" rx="6" fill="#7fdbca"/>
+<text x="555" y="52" fill="#1a1a2e" font-size="10" text-anchor="middle">✓</text>
+<rect x="30" y="90" width="540" height="55" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="110" fill="#7fdbca" font-size="10">Tools:</text>
+<text x="55" y="128" fill="white" font-size="10">paramiko (SSH) | boto3 (AWS) | azure-sdk | subprocess</text>
+<text x="350" y="110" fill="#7fdbca" font-size="10">Key principle:</text>
+<text x="350" y="128" fill="white" font-size="10">Idempotent — safe to run multiple times</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "ai-ml-overview": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="540" height="50" rx="10" fill="#533483"/>
+<text x="300" y="40" fill="#7fdbca" font-size="12" text-anchor="middle">Artificial Intelligence (broad field)</text>
+<text x="300" y="57" fill="white" font-size="10" text-anchor="middle">Machines performing tasks requiring human intelligence</text>
+<rect x="80" y="85" width="200" height="45" rx="8" fill="#e94560"/>
+<text x="180" y="105" fill="white" font-size="11" text-anchor="middle">Machine Learning</text>
+<text x="180" y="120" fill="white" font-size="9" text-anchor="middle">Learn patterns from data</text>
+<rect x="320" y="85" width="200" height="45" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="420" y="105" fill="#7fdbca" font-size="11" text-anchor="middle">Deep Learning</text>
+<text x="420" y="120" fill="white" font-size="9" text-anchor="middle">Neural networks (many layers)</text>
+<line x1="180" y1="70" x2="180" y2="85" stroke="#7fdbca" stroke-width="2"/>
+<line x1="420" y1="70" x2="420" y2="85" stroke="#7fdbca" stroke-width="2"/>
+<rect x="130" y="142" width="340" height="22" rx="4" fill="#16213e"/>
+<text x="300" y="157" fill="white" font-size="10" text-anchor="middle">Supervised | Unsupervised | Reinforcement Learning</text>
+<text x="300" y="178" fill="#aaa" font-size="11" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "data-pandas": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="120" height="55" rx="8" fill="#533483"/>
+<text x="90" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">Raw Data</text>
+<text x="90" y="58" fill="white" font-size="10" text-anchor="middle">CSV / JSON / DB</text>
+<line x1="150" y1="47" x2="180" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="180" y="15" width="140" height="65" rx="8" fill="#e94560"/>
+<text x="250" y="35" fill="white" font-size="10" text-anchor="middle">pandas</text>
+<text x="250" y="50" fill="white" font-size="9" text-anchor="middle">pd.read_csv()</text>
+<text x="250" y="63" fill="white" font-size="9" text-anchor="middle">clean, filter, transform</text>
+<line x1="320" y1="47" x2="350" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="350" y="20" width="120" height="55" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="410" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">DataFrame</text>
+<text x="410" y="58" fill="white" font-size="10" text-anchor="middle">Rows + Columns</text>
+<line x1="470" y1="47" x2="500" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="500" y="25" width="80" height="45" rx="8" fill="#7fdbca"/>
+<text x="540" y="45" fill="#1a1a2e" font-size="10" text-anchor="middle">Ready</text>
+<text x="540" y="58" fill="#1a1a2e" font-size="9" text-anchor="middle">for ML</text>
+<rect x="30" y="95" width="540" height="50" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="80" y="115" fill="#7fdbca" font-size="10">.head()</text>
+<text x="170" y="115" fill="#7fdbca" font-size="10">.describe()</text>
+<text x="280" y="115" fill="#7fdbca" font-size="10">.info()</text>
+<text x="370" y="115" fill="#7fdbca" font-size="10">.fillna()</text>
+<text x="470" y="115" fill="#7fdbca" font-size="10">.groupby()</text>
+<text x="300" y="135" fill="white" font-size="10" text-anchor="middle">Explore → Clean → Transform → Analyse</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "first-ml-model": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="20" y="25" width="90" height="45" rx="8" fill="#533483"/>
+<text x="65" y="45" fill="#7fdbca" font-size="9" text-anchor="middle">Data</text>
+<text x="65" y="59" fill="white" font-size="9" text-anchor="middle">X, y</text>
+<line x1="110" y1="47" x2="130" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="130" y="25" width="90" height="45" rx="8" fill="#e94560"/>
+<text x="175" y="45" fill="white" font-size="9" text-anchor="middle">Split</text>
+<text x="175" y="59" fill="white" font-size="8" text-anchor="middle">train / test</text>
+<line x1="220" y1="47" x2="240" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="240" y="25" width="90" height="45" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="285" y="45" fill="#7fdbca" font-size="9" text-anchor="middle">Train</text>
+<text x="285" y="59" fill="white" font-size="8" text-anchor="middle">model.fit()</text>
+<line x1="330" y1="47" x2="350" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="350" y="25" width="90" height="45" rx="8" fill="#533483"/>
+<text x="395" y="45" fill="white" font-size="9" text-anchor="middle">Predict</text>
+<text x="395" y="59" fill="white" font-size="8" text-anchor="middle">.predict()</text>
+<line x1="440" y1="47" x2="460" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="460" y="25" width="120" height="45" rx="8" fill="#7fdbca"/>
+<text x="520" y="45" fill="#1a1a2e" font-size="9" text-anchor="middle">Evaluate</text>
+<text x="520" y="59" fill="#1a1a2e" font-size="8" text-anchor="middle">accuracy 94%</text>
+<rect x="30" y="90" width="540" height="55" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="110" fill="#7fdbca" font-size="10">scikit-learn:</text>
+<text x="55" y="128" fill="white" font-size="10">from sklearn.tree import DecisionTreeClassifier</text>
+<text x="55" y="140" fill="white" font-size="10">model = DecisionTreeClassifier().fit(X_train, y_train)</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "gen-ai-overview": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="15" width="160" height="55" rx="10" fill="#533483"/>
+<text x="110" y="37" fill="#7fdbca" font-size="11" text-anchor="middle">Traditional ML</text>
+<text x="110" y="55" fill="white" font-size="10" text-anchor="middle">Classify / Predict</text>
+<rect x="220" y="15" width="160" height="55" rx="10" fill="#e94560"/>
+<text x="300" y="37" fill="white" font-size="11" text-anchor="middle">Generative AI</text>
+<text x="300" y="55" fill="white" font-size="10" text-anchor="middle">Create new content</text>
+<rect x="410" y="15" width="160" height="55" rx="10" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="490" y="37" fill="#7fdbca" font-size="11" text-anchor="middle">LLMs</text>
+<text x="490" y="55" fill="white" font-size="10" text-anchor="middle">GPT / Claude / Gemini</text>
+<rect x="30" y="85" width="540" height="60" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="105" fill="#7fdbca" font-size="10">Generates:</text>
+<text x="140" y="105" fill="white" font-size="10">Text</text>
+<text x="200" y="105" fill="white" font-size="10">Code</text>
+<text x="260" y="105" fill="white" font-size="10">Images</text>
+<text x="330" y="105" fill="white" font-size="10">Audio</text>
+<text x="400" y="105" fill="#7fdbca" font-size="10">Powered by:</text>
+<text x="500" y="105" fill="white" font-size="10">Transformers</text>
+<text x="55" y="128" fill="#7fdbca" font-size="10">Key skill:</text>
+<text x="140" y="128" fill="white" font-size="10">Prompt Engineering — how you ask determines what you get</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "llm-apis": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="140" height="60" rx="10" fill="#533483"/>
+<text x="100" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">Your Python Script</text>
+<text x="100" y="58" fill="white" font-size="9" text-anchor="middle">messages = [</text>
+<text x="100" y="70" fill="white" font-size="9" text-anchor="middle">{role, content}]</text>
+<line x1="170" y1="50" x2="210" y2="50" stroke="#7fdbca" stroke-width="2"/>
+<rect x="210" y="20" width="120" height="60" rx="8" fill="#e94560"/>
+<text x="270" y="42" fill="white" font-size="10" text-anchor="middle">API Call</text>
+<text x="270" y="58" fill="white" font-size="9" text-anchor="middle">POST /chat</text>
+<text x="270" y="70" fill="white" font-size="9" text-anchor="middle">completions</text>
+<line x1="330" y1="50" x2="370" y2="50" stroke="#7fdbca" stroke-width="2"/>
+<rect x="370" y="20" width="100" height="60" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="420" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">LLM</text>
+<text x="420" y="58" fill="white" font-size="9" text-anchor="middle">GPT-4 /</text>
+<text x="420" y="70" fill="white" font-size="9" text-anchor="middle">Gemini</text>
+<line x1="470" y1="50" x2="510" y2="50" stroke="#e94560" stroke-width="2"/>
+<rect x="510" y="25" width="70" height="50" rx="8" fill="#7fdbca"/>
+<text x="545" y="47" fill="#1a1a2e" font-size="9" text-anchor="middle">Response</text>
+<text x="545" y="60" fill="#1a1a2e" font-size="9" text-anchor="middle">text</text>
+<rect x="30" y="100" width="540" height="45" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="118" fill="#7fdbca" font-size="10">Messages:</text>
+<text x="150" y="118" fill="white" font-size="10">system (role) → user (question) → assistant (reply)</text>
+<text x="55" y="135" fill="#7fdbca" font-size="10">Params:</text>
+<text x="150" y="135" fill="white" font-size="10">temperature (creativity) | max_tokens (length) | model</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "ai-tools": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="15" width="120" height="50" rx="8" fill="#533483"/>
+<text x="90" y="37" fill="#7fdbca" font-size="10" text-anchor="middle">Logs / Metrics</text>
+<text x="90" y="52" fill="white" font-size="9" text-anchor="middle">Context data</text>
+<line x1="150" y1="40" x2="180" y2="40" stroke="#7fdbca" stroke-width="2"/>
+<rect x="180" y="15" width="140" height="50" rx="8" fill="#e94560"/>
+<text x="250" y="37" fill="white" font-size="10" text-anchor="middle">Build Prompt</text>
+<text x="250" y="52" fill="white" font-size="9" text-anchor="middle">context + question</text>
+<line x1="320" y1="40" x2="350" y2="40" stroke="#7fdbca" stroke-width="2"/>
+<rect x="350" y="15" width="100" height="50" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="400" y="37" fill="#7fdbca" font-size="10" text-anchor="middle">LLM API</text>
+<text x="400" y="52" fill="white" font-size="9" text-anchor="middle">analyse</text>
+<line x1="450" y1="40" x2="480" y2="40" stroke="#7fdbca" stroke-width="2"/>
+<rect x="480" y="15" width="100" height="50" rx="8" fill="#533483"/>
+<text x="530" y="37" fill="white" font-size="10" text-anchor="middle">Action</text>
+<text x="530" y="52" fill="white" font-size="9" text-anchor="middle">alert / fix</text>
+<rect x="30" y="80" width="540" height="65" rx="8" fill="#16213e" stroke="#e94560" stroke-width="1"/>
+<text x="55" y="100" fill="#e94560" font-size="10">Use cases:</text>
+<text x="55" y="118" fill="white" font-size="10">• AI log analysis — summarise errors automatically</text>
+<text x="55" y="133" fill="white" font-size="10">• Incident response — suggest remediation steps</text>
+<text x="350" y="118" fill="white" font-size="10">• RAG — AI + your docs</text>
+<text x="350" y="133" fill="#e94560" font-size="10">⚠ Always validate before executing</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "project-structure": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="15" width="540" height="130" rx="10" fill="#16213e" stroke="#533483" stroke-width="1.5"/>
+<text x="55" y="37" fill="#7fdbca" font-size="11">ai-project/</text>
+<text x="80" y="55" fill="white" font-size="10">├── .venv/</text>
+<text x="230" y="55" fill="#aaa" font-size="9">← virtual environment</text>
+<text x="80" y="70" fill="white" font-size="10">├── .env</text>
+<text x="230" y="70" fill="#e94560" font-size="9">← API keys (NEVER commit)</text>
+<text x="80" y="85" fill="white" font-size="10">├── src/</text>
+<text x="230" y="85" fill="#aaa" font-size="9">← your code (train.py, predict.py)</text>
+<text x="80" y="100" fill="white" font-size="10">├── data/</text>
+<text x="230" y="100" fill="#aaa" font-size="9">← datasets (raw/ + processed/)</text>
+<text x="80" y="115" fill="white" font-size="10">├── models/</text>
+<text x="230" y="115" fill="#aaa" font-size="9">← saved trained models (.pkl)</text>
+<text x="80" y="130" fill="white" font-size="10">├── requirements.txt</text>
+<text x="230" y="130" fill="#7fdbca" font-size="9">← reproducible dependencies</text>
+<text x="400" y="37" fill="#7fdbca" font-size="10">Key rules:</text>
+<text x="400" y="55" fill="white" font-size="9">1. One venv per project</text>
+<text x="400" y="70" fill="white" font-size="9">2. Never commit .env</text>
+<text x="400" y="85" fill="white" font-size="9">3. Always commit requirements.txt</text>
+<text x="400" y="100" fill="white" font-size="9">4. Use git from day one</text>
+<text x="300" y="168" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "ai-pipeline": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="20" y="30" width="95" height="45" rx="8" fill="#533483"/>
+<text x="67" y="50" fill="#7fdbca" font-size="9" text-anchor="middle">Collect</text>
+<text x="67" y="63" fill="white" font-size="8" text-anchor="middle">metrics/logs</text>
+<line x1="115" y1="52" x2="135" y2="52" stroke="#7fdbca" stroke-width="2"/>
+<rect x="135" y="30" width="95" height="45" rx="8" fill="#e94560"/>
+<text x="182" y="50" fill="white" font-size="9" text-anchor="middle">Process</text>
+<text x="182" y="63" fill="white" font-size="8" text-anchor="middle">clean/transform</text>
+<line x1="230" y1="52" x2="250" y2="52" stroke="#7fdbca" stroke-width="2"/>
+<rect x="250" y="30" width="95" height="45" rx="8" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="297" y="50" fill="#7fdbca" font-size="9" text-anchor="middle">Predict</text>
+<text x="297" y="63" fill="white" font-size="8" text-anchor="middle">model.predict()</text>
+<line x1="345" y1="52" x2="365" y2="52" stroke="#7fdbca" stroke-width="2"/>
+<rect x="365" y="30" width="95" height="45" rx="8" fill="#533483"/>
+<text x="412" y="50" fill="white" font-size="9" text-anchor="middle">Act</text>
+<text x="412" y="63" fill="white" font-size="8" text-anchor="middle">alert/scale</text>
+<line x1="460" y1="52" x2="480" y2="52" stroke="#7fdbca" stroke-width="2"/>
+<rect x="480" y="30" width="95" height="45" rx="8" fill="#7fdbca"/>
+<text x="527" y="50" fill="#1a1a2e" font-size="9" text-anchor="middle">Report</text>
+<text x="527" y="63" fill="#1a1a2e" font-size="8" text-anchor="middle">log/notify</text>
+<rect x="30" y="95" width="540" height="50" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="115" fill="#7fdbca" font-size="10">Each stage:</text>
+<text x="55" y="133" fill="white" font-size="10">Independent function → testable → error handling → logging</text>
+<text x="380" y="115" fill="#7fdbca" font-size="10">Runs:</text>
+<text x="380" y="133" fill="white" font-size="10">On schedule or event trigger</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
+        "deploy-ai": `<svg viewBox="0 0 600 180" width="100%" height="180">
+<rect x="30" y="20" width="130" height="55" rx="10" fill="#533483"/>
+<text x="95" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">Trained Model</text>
+<text x="95" y="58" fill="white" font-size="10" text-anchor="middle">model.pkl</text>
+<line x1="160" y1="47" x2="190" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="190" y="15" width="150" height="65" rx="10" fill="#e94560"/>
+<text x="265" y="35" fill="white" font-size="10" text-anchor="middle">Flask / FastAPI</text>
+<text x="265" y="52" fill="white" font-size="9" text-anchor="middle">POST /predict</text>
+<text x="265" y="67" fill="white" font-size="9" text-anchor="middle">→ model.predict(data)</text>
+<line x1="340" y1="47" x2="370" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="370" y="20" width="100" height="55" rx="10" fill="#0f3460" stroke="#7fdbca" stroke-width="1.5"/>
+<text x="420" y="42" fill="#7fdbca" font-size="10" text-anchor="middle">Docker</text>
+<text x="420" y="58" fill="white" font-size="10" text-anchor="middle">Container</text>
+<line x1="470" y1="47" x2="500" y2="47" stroke="#7fdbca" stroke-width="2"/>
+<rect x="500" y="25" width="80" height="45" rx="8" fill="#7fdbca"/>
+<text x="540" y="44" fill="#1a1a2e" font-size="9" text-anchor="middle">Cloud</text>
+<text x="540" y="58" fill="#1a1a2e" font-size="9" text-anchor="middle">Deploy</text>
+<rect x="30" y="95" width="540" height="50" rx="8" fill="#16213e" stroke="#533483" stroke-width="1"/>
+<text x="55" y="115" fill="#7fdbca" font-size="10">Production checklist:</text>
+<text x="55" y="133" fill="white" font-size="10">API endpoint | Health check | Monitoring | Model versioning | Retraining plan</text>
+<text x="300" y="170" fill="#aaa" font-size="12" text-anchor="middle">${label}</text>
+</svg>`,
+
         "generic": `<svg viewBox="0 0 600 180" width="100%" height="180">
             <rect x="30" y="57" width="150" height="65" rx="12" fill="#533483"/>
             <text x="105" y="95" fill="white" font-size="16" text-anchor="middle">Concept</text>
@@ -612,22 +1035,22 @@ const sectionDiagramTypes = {
     "m8s1": "read-files",      // Reading Files
     "m8s2": "write-csv",       // Writing CSV
     "m8s3": "json-process",     // JSON Processing
-    "m9s1": "generic",          // Importing Modules
-    "m9s2": "generic",          // Installing Packages
-    "m9s3": "generic",          // Creating Your Own Modules
-    "m10s1": "generic",         // Classes & Objects
-    "m10s2": "generic",         // Inheritance
-    "m10s3": "generic",         // Encapsulation
-    "m11s1": "generic",         // Working with APIs
-    "m11s2": "generic",         // Task Scheduling
-    "m11s3": "generic",         // Infrastructure Automation
-    "m12s1": "generic",         // What is AI & ML
-    "m12s2": "generic",         // Data Preparation
-    "m12s3": "generic",         // First ML Model
-    "m13s1": "generic",         // What is Gen AI
-    "m13s2": "generic",         // LLM APIs
-    "m13s3": "generic",         // Building AI Tools
-    "m14s1": "generic",         // Project Structure
-    "m14s2": "generic",         // AI Pipeline
-    "m14s3": "generic"          // Deploying AI
+    "m9s1": "import-modules",          // Importing Modules
+    "m9s2": "pip-packages",          // Installing Packages
+    "m9s3": "custom-modules",          // Creating Your Own Modules
+    "m10s1": "classes-objects",         // Classes & Objects
+    "m10s2": "inheritance",         // Inheritance
+    "m10s3": "encapsulation",         // Encapsulation
+    "m11s1": "api-calls",         // Working with APIs
+    "m11s2": "task-scripts",         // Task Scheduling
+    "m11s3": "infra-automation",         // Infrastructure Automation
+    "m12s1": "ai-ml-overview",         // What is AI & ML
+    "m12s2": "data-pandas",         // Data Preparation
+    "m12s3": "first-ml-model",         // First ML Model
+    "m13s1": "gen-ai-overview",         // What is Gen AI
+    "m13s2": "llm-apis",         // LLM APIs
+    "m13s3": "ai-tools",         // Building AI Tools
+    "m14s1": "project-structure",         // Project Structure
+    "m14s2": "ai-pipeline",         // AI Pipeline
+    "m14s3": "deploy-ai"          // Deploying AI
 };
