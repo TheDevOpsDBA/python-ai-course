@@ -7,7 +7,7 @@ let currentSection = 0;
 
 // Gemini API Configuration
 // Get your free key at: https://aistudio.google.com/apikey
-const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+const GEMINI_API_KEY = "AQ.Ab8RN6IN7cExgqyCn4stlfrt5CPZAo-xxrQArmxIO65o5ktVyg";
 
 async function initializeApp() {
 
@@ -418,9 +418,10 @@ The student asks: "${question}"
 Give a clear, concise answer (2-4 sentences max). Use simple language. If referring to specific lines, mention the line content. Do not use markdown headers. You can use backticks for inline code.`;
 
     try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        console.log("Chat API request to:", url.replace(GEMINI_API_KEY, "***"));
+
+        const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -434,6 +435,7 @@ Give a clear, concise answer (2-4 sentences max). Use simple language. If referr
         );
 
         const data = await response.json();
+        console.log("Chat API response:", response.status, data);
 
         if (data.candidates && data.candidates[0]) {
             const answer = data.candidates[0].content.parts[0].text;
@@ -441,11 +443,14 @@ Give a clear, concise answer (2-4 sentences max). Use simple language. If referr
             addChatMessage(answer.replace(/`([^`]+)`/g, "<code>$1</code>"), "bot");
         } else {
             loadingMsg.remove();
-            addChatMessage("Sorry, I couldn't generate a response. Try rephrasing your question.", "bot");
+            const errMsg = data.error ? data.error.message : "No response generated";
+            console.error("Chat API error:", errMsg);
+            addChatMessage(`Error: ${errMsg}`, "bot");
         }
     } catch (error) {
+        console.error("Chat fetch error:", error);
         loadingMsg.remove();
-        addChatMessage("Connection error. Please check your API key and internet connection.", "bot");
+        addChatMessage(`Connection error: ${error.message}`, "bot");
     }
 }
 
