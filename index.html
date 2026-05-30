@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python for AI - Interactive Course</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css"/>
+
+</head>
+<body>
+
+<header>
+<h1>Python for AI - Interactive Course</h1>
+</header>
+
+<div class="toolbar">
+<select id="moduleSelect"></select>
+<select id="sectionSelect"></select>
+
+<button onclick="previousSection()">⬅ Back</button>
+<button onclick="nextSection()">Next ➡</button>
+</div>
+
+<div class="layout">
+
+<div class="left-panel">
+
+<div class="diagram-box"></div>
+
+<button class="expand-btn" onclick="toggleDescription()">⛶ Expand / Restore</button>
+
+<div class="reveal-controls">
+<button class="reveal-btn" onclick="revealAll()">⏩ Show All</button>
+<span id="revealCount" class="reveal-counter"></span>
+</div>
+
+<div id="description"></div>
+
+<div id="syntax"></div>
+
+</div>
+
+<div class="right-panel">
+
+<div id="exampleTabs"></div>
+
+<textarea id="editor"></textarea>
+
+<div class="action-row">
+<button onclick="runCode()">▶ Run All</button>
+<button onclick="runSelected()">▶ Run Selected</button>
+<button onclick="clearOutput()">🧹 Clear Output</button>
+</div>
+
+<pre id="output"></pre>
+
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+
+<script src="data/courses.js"></script>
+<script src="js/diagrams.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
