@@ -82,11 +82,14 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 <pre id="output"></pre>
 
 <div class="chat-panel">
-<div class="chat-header">
+<div class="chat-header" onclick="toggleChat()">
 <span>🤖 Ask AI about this code</span>
-<button class="chat-toggle" onclick="toggleChat()">▼</button>
+<button class="chat-toggle">▼</button>
 </div>
 <div id="chatBody" class="chat-body">
+<div class="chat-disclaimer">
+⚠️ This AI assistant is powered by a PowerShell Academy-owned API key provided as a courtesy. It may be discontinued at any time without notice. Please use it only for questions related to the course code examples. PowerShell Academy is not liable for AI responses.
+</div>
 <div id="chatMessages" class="chat-messages">
 <div class="chat-msg bot">Hi! I can explain the code in the editor. Ask me anything about it.</div>
 </div>

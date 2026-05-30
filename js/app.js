@@ -7,7 +7,7 @@ let currentSection = 0;
 
 // Gemini API Configuration
 // Get your free key at: https://aistudio.google.com/apikey
-const GEMINI_API_KEY = "AQ.Ab8RN6IN7cExgqyCn4stlfrt5CPZAo-xxrQArmxIO65o5ktVyg";
+const GEMINI_API_KEY = "AQ.Ab8RN6KATXcylvZ-VUnm7ATIclhAYAZNbGCm0rW2N-ZKdXbMjQ";
 
 async function initializeApp() {
 
@@ -405,7 +405,8 @@ async function sendChat() {
     const code = editor ? editor.getValue() : "";
     const section = courseData.modules[currentModule].sections[currentSection];
 
-    const prompt = `You are a helpful Python tutor for IT professionals learning Python for automation and AI. 
+    const prompt = `You are a helpful Python tutor for IT professionals learning Python for automation and AI. You ONLY answer questions related to Python programming, the code shown below, or the course topic. If the question is unrelated to Python or the code, politely decline and ask them to keep questions relevant to the course material.
+
 The student is currently studying: "${section.title}"
 
 Here is the code they are looking at:
@@ -415,10 +416,10 @@ ${code}
 
 The student asks: "${question}"
 
-Give a clear, concise answer (2-4 sentences max). Use simple language. If referring to specific lines, mention the line content. Do not use markdown headers. You can use backticks for inline code.`;
+Give a clear, helpful answer. If the question is about the code, refer to specific lines. If it's a general Python question related to the course, answer it directly. If it's completely unrelated to Python or programming, politely say you can only help with Python and course-related questions. Keep the answer concise but complete (4-6 sentences).`;
 
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         console.log("Chat API request to:", url.replace(GEMINI_API_KEY, "***"));
 
         const response = await fetch(url, {
@@ -428,7 +429,7 @@ Give a clear, concise answer (2-4 sentences max). Use simple language. If referr
                     contents: [{ parts: [{ text: prompt }] }],
                     generationConfig: {
                         temperature: 0.7,
-                        maxOutputTokens: 300
+                        maxOutputTokens: 1024
                     }
                 })
             }
@@ -438,9 +439,16 @@ Give a clear, concise answer (2-4 sentences max). Use simple language. If referr
         console.log("Chat API response:", response.status, data);
 
         if (data.candidates && data.candidates[0]) {
-            const answer = data.candidates[0].content.parts[0].text;
+            let answer = data.candidates[0].content.parts[0].text;
             loadingMsg.remove();
-            addChatMessage(answer.replace(/`([^`]+)`/g, "<code>$1</code>"), "bot");
+            // Format the response
+            answer = answer
+                .replace(/\n\n/g, "<br><br>")
+                .replace(/\n/g, "<br>")
+                .replace(/`([^`]+)`/g, "<code>$1</code>")
+                .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+                .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+            addChatMessage(answer, "bot");
         } else {
             loadingMsg.remove();
             const errMsg = data.error ? data.error.message : "No response generated";
