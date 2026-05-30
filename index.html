@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +36,21 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 
 <div class="left-panel">
 
-<div class="diagram-box"></div>
+<div class="diagram-box">
+<svg viewBox="0 0 600 220" width="100%" height="220">
+<rect x="40" y="50" width="140" height="70" rx="12" fill="#533483"/>
+<text x="70" y="92" fill="white" font-size="22">Python</text>
+
+<rect x="230" y="50" width="140" height="70" rx="12" fill="#e94560"/>
+<text x="245" y="92" fill="white" font-size="22">Automation</text>
+
+<rect x="420" y="50" width="140" height="70" rx="12" fill="#7fdbca"/>
+<text x="475" y="92" fill="black" font-size="22">AI</text>
+
+<line x1="180" y1="85" x2="230" y2="85" stroke="white" stroke-width="5"/>
+<line x1="370" y1="85" x2="420" y2="85" stroke="white" stroke-width="5"/>
+</svg>
+</div>
 
 <button class="expand-btn" onclick="toggleDescription()">⛶ Expand / Restore</button>
 
@@ -70,6 +85,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 
 <script src="data/courses.js"></script>
