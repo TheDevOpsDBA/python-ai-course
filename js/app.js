@@ -94,9 +94,10 @@ function renderSection() {
     document.getElementById("sectionSelect").value =
         currentSection;
 
-    document.getElementById("description").innerHTML =
-        `<h3 class="section-heading">${section.title}</h3>` +
-        (section.brief || section.description);
+    let content = section.brief || section.description;
+    // Replace the existing h4 heading with the full section title
+    content = content.replace(/<h4>.*?<\/h4>/, `<h3 class="section-heading">${section.title}</h3>`);
+    document.getElementById("description").innerHTML = content;
 
     // Initialize reveal animation for bullet points
     initReveal();
