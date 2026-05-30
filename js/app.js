@@ -411,7 +411,7 @@ async function sendChat() {
     const code = editor ? editor.getValue() : "";
     const section = courseData.modules[currentModule].sections[currentSection];
 
-    const prompt = `You are a helpful Python tutor for IT professionals learning Python for automation and AI. You ONLY answer questions related to Python programming, the code shown below, or the course topic. If the question is unrelated to Python or the code, politely decline and ask them to keep questions relevant to the course material.
+    const chatPrompt = `You are a helpful Python tutor for IT professionals learning Python for automation and AI. You ONLY answer questions related to Python programming, the code shown below, or the course topic. If the question is unrelated to Python or the code, politely decline and ask them to keep questions relevant to the course material.
 
 The student is currently studying: "${section.title}"
 
@@ -432,7 +432,7 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
+                    contents: [{ parts: [{ text: chatPrompt }] }],
                     generationConfig: {
                         temperature: 0.7,
                         maxOutputTokens: 1024
