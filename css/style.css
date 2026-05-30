@@ -130,6 +130,7 @@ header{
     margin:0 0 12px 0;
     padding-bottom:8px;
     border-bottom:2px solid #533483;
+    text-align:left;
 }
 
 #description p{
