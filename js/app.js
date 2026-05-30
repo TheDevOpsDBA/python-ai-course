@@ -7,11 +7,8 @@ let currentSection = 0;
 
 // Gemini API Configuration
 // Key is injected at deploy time via GitHub Actions
-let GEMINI_API_KEY = "__GEMINI_API_KEY__";
-// Fallback to localStorage if placeholder not replaced (local dev)
-if (GEMINI_API_KEY === "__GEMINI_API_KEY__") {
-    GEMINI_API_KEY = localStorage.getItem("gemini_api_key") || "";
-}
+const GEMINI_API_KEY_INJECTED = "__GEMINI_API_KEY__";
+let GEMINI_API_KEY = GEMINI_API_KEY_INJECTED.startsWith("__") ? localStorage.getItem("gemini_api_key") || "" : GEMINI_API_KEY_INJECTED;
 
 async function initializeApp() {
 
