@@ -1,4 +1,4 @@
-
+﻿
 let editor;
 let pyodide;
 
@@ -144,7 +144,7 @@ function renderTabs(section, activeIndex) {
     const scratchButton =
         document.createElement("button");
 
-    scratchButton.innerText = "✏ Scratch Pad";
+    scratchButton.innerText = "âœ Scratch Pad";
     scratchButton.className = "example-btn";
 
     scratchButton.onclick = () => {
@@ -242,7 +242,7 @@ async function runSelected() {
     const selected = editor.getSelection();
 
     if (!selected.trim()) {
-        output.textContent = "⚠ No code selected. Highlight lines to run them.";
+        output.textContent = "âš  No code selected. Highlight lines to run them.";
         return;
     }
 
@@ -375,7 +375,7 @@ function toggleChat() {
     const body = document.getElementById("chatBody");
     body.classList.toggle("open");
     const btn = document.querySelector(".chat-toggle");
-    btn.textContent = body.classList.contains("open") ? "▲" : "▼";
+    btn.textContent = body.classList.contains("open") ? "â–²" : "â–¼";
 }
 
 function addChatMessage(text, role) {
@@ -438,7 +438,7 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
                     "X-Title": "Python for AI - Interactive Course"
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-2.0-flash-exp:free",
+                    model: "google/gemma-4-31b-it:free",
                     messages: [
                         { role: "user", content: chatPrompt }
                     ],
@@ -475,7 +475,7 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
     }
 }
 
-// Keyboard navigation — right arrow reveals/advances, left arrow goes back
+// Keyboard navigation â€” right arrow reveals/advances, left arrow goes back
 document.addEventListener("keydown", function(e) {
     // Don't intercept if user is typing in editor, textarea, or chat input
     if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
@@ -490,3 +490,4 @@ document.addEventListener("keydown", function(e) {
         previousSection();
     }
 });
+
