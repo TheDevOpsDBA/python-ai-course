@@ -5,10 +5,10 @@ let pyodide;
 let currentModule = 0;
 let currentSection = 0;
 
-// Gemini API Configuration
+// OpenRouter API Configuration
 // Key is injected at deploy time via GitHub Actions
-const GEMINI_API_KEY_INJECTED = "__GEMINI_API_KEY__";
-let GEMINI_API_KEY = GEMINI_API_KEY_INJECTED.startsWith("__") ? localStorage.getItem("gemini_api_key") || "" : GEMINI_API_KEY_INJECTED;
+const API_KEY_INJECTED = "__GEMINI_API_KEY__";
+let OPENROUTER_API_KEY = API_KEY_INJECTED.startsWith("__") ? localStorage.getItem("openrouter_api_key") || "" : API_KEY_INJECTED;
 
 async function initializeApp() {
 
@@ -396,11 +396,11 @@ async function sendChat() {
     input.value = "";
     addChatMessage(question, "user");
 
-    if (!GEMINI_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
         const key = prompt("Enter the AI API key (provided by your instructor):");
         if (key && key.trim()) {
-            GEMINI_API_KEY = key.trim();
-            localStorage.setItem("gemini_api_key", GEMINI_API_KEY);
+            OPENROUTER_API_KEY = key.trim();
+            localStorage.setItem("openrouter_api_key", OPENROUTER_API_KEY);
         } else {
             addChatMessage("No API key provided. Ask your instructor for the key.", "bot");
             return;
@@ -426,18 +426,24 @@ The student asks: "${question}"
 Give a clear, helpful answer. If the question is about the code, refer to specific lines. If it's a general Python question related to the course, answer it directly. If it's completely unrelated to Python or programming, politely say you can only help with Python and course-related questions. Keep the answer concise but complete (4-6 sentences).`;
 
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        console.log("Chat API request to:", url.replace(GEMINI_API_KEY, "***"));
+        const url = "https://openrouter.ai/api/v1/chat/completions";
+        console.log("Chat API request to OpenRouter");
 
         const response = await fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "Python for AI - Interactive Course"
+                },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: chatPrompt }] }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 1024
-                    }
+                    model: "meta-llama/llama-4-scout:free",
+                    messages: [
+                        { role: "user", content: chatPrompt }
+                    ],
+                    max_tokens: 1024,
+                    temperature: 0.7
                 })
             }
         );
@@ -445,8 +451,8 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
         const data = await response.json();
         console.log("Chat API response:", response.status, data);
 
-        if (data.candidates && data.candidates[0]) {
-            let answer = data.candidates[0].content.parts[0].text;
+        if (data.choices && data.choices[0]) {
+            let answer = data.choices[0].message.content;
             loadingMsg.remove();
             // Format the response
             answer = answer
