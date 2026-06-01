@@ -425,11 +425,18 @@ The student asks: "${question}"
 
 Give a clear, helpful answer. If the question is about the code, refer to specific lines. If it's a general Python question related to the course, answer it directly. If it's completely unrelated to Python or programming, politely say you can only help with Python and course-related questions. Keep the answer concise but complete (4-6 sentences).`;
 
-    try {
-        const url = "https://openrouter.ai/api/v1/chat/completions";
-        console.log("Chat API request to OpenRouter");
+    const models = [
+        "google/gemma-4-31b-it:free",
+        "nvidia/nemotron-nano-9b-v2:free",
+        "openai/gpt-oss-20b:free",
+        "google/gemma-4-26b-a4b-it:free"
+    ];
 
-        const response = await fetch(url, {
+    let lastError = "";
+    for (const model of models) {
+        try {
+            console.log("Trying model:", model);
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -438,41 +445,39 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
                     "X-Title": "Python for AI - Interactive Course"
                 },
                 body: JSON.stringify({
-                    model: "google/gemma-4-31b-it:free",
-                    messages: [
-                        { role: "user", content: chatPrompt }
-                    ],
+                    model: model,
+                    messages: [{ role: "user", content: chatPrompt }],
                     max_tokens: 1024,
                     temperature: 0.7
                 })
+            });
+
+            const data = await response.json();
+
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                let answer = data.choices[0].message.content || "";
+                if (answer.trim()) {
+                    loadingMsg.remove();
+                    answer = answer
+                        .replace(/\n\n/g, "<br><br>")
+                        .replace(/\n/g, "<br>")
+                        .replace(/`([^`]+)`/g, "<code>$1</code>")
+                        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+                        .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+                    addChatMessage(answer, "bot");
+                    return;
+                }
             }
-        );
-
-        const data = await response.json();
-        console.log("Chat API response:", response.status, data);
-
-        if (data.choices && data.choices[0]) {
-            let answer = data.choices[0].message.content;
-            loadingMsg.remove();
-            // Format the response
-            answer = answer
-                .replace(/\n\n/g, "<br><br>")
-                .replace(/\n/g, "<br>")
-                .replace(/`([^`]+)`/g, "<code>$1</code>")
-                .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-                .replace(/\*([^*]+)\*/g, "<em>$1</em>");
-            addChatMessage(answer, "bot");
-        } else {
-            loadingMsg.remove();
-            const errMsg = data.error ? data.error.message : "No response generated";
-            console.error("Chat API error:", errMsg);
-            addChatMessage(`Error: ${errMsg}`, "bot");
+            lastError = data.error ? data.error.message : "Empty response";
+            console.log("Model failed:", model, lastError);
+        } catch (err) {
+            lastError = err.message;
+            console.log("Model error:", model, err.message);
         }
-    } catch (error) {
-        console.error("Chat fetch error:", error);
-        loadingMsg.remove();
-        addChatMessage(`Connection error: ${error.message}`, "bot");
     }
+
+    loadingMsg.remove();
+    addChatMessage(`All models busy. Please try again in a moment. (${lastError})`, "bot");
 }
 
 // Keyboard navigation â€” right arrow reveals/advances, left arrow goes back
