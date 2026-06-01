@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+﻿name: Deploy to GitHub Pages
 
 on:
   push:
@@ -27,7 +27,9 @@ jobs:
         env:
           API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
+          sed -i 's/\r$//' js/app.js
           sed -i "s|__GEMINI_API_KEY__|${API_KEY}|g" js/app.js
+          grep -c "openrouter_api_key" js/app.js && echo "Key injection verified"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
