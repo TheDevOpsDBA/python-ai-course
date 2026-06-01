@@ -438,7 +438,7 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
                     "X-Title": "Python for AI - Interactive Course"
                 },
                 body: JSON.stringify({
-                    model: "meta-llama/llama-4-scout:free",
+                    model: "google/gemini-2.0-flash-exp:free",
                     messages: [
                         { role: "user", content: chatPrompt }
                     ],
