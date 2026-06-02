@@ -443,12 +443,12 @@ function renderSection() {
         if (editor) document.getElementById('lineCount').textContent = 'Ln ' + editor.lineCount();
     }, 100);
 
-    // Show/hide lab section
+    // Show/hide hands-on lab
     const labSection = document.getElementById('labSection');
     if (section.lab) {
         labSection.style.display = 'block';
-        document.getElementById('labChallenge').textContent = section.lab.challenge;
-        document.getElementById('labHint').textContent = '💡 Hint: ' + section.lab.hint;
+        document.getElementById('labTask').textContent = section.lab.task;
+        document.getElementById('labFeedback').style.display = 'none';
     } else {
         labSection.style.display = 'none';
     }
@@ -917,21 +917,105 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
 
 // ===== Lab Evaluation =====
 
-function evaluateLab() {
+function checkAnswer() {
     const section = courseData.modules[currentModule].sections[currentSection];
     if (!section.lab) return;
-
-    // Open the right panel if closed
+    
+    // Open right panel if closed
     const panel = document.getElementById('rightPanel');
     if (!panel.classList.contains('open')) toggleRightPanel();
-
-    // Set chat input with evaluation request
+    
     const code = editor ? editor.getValue() : "";
-    const evalPrompt = `Evaluate my solution for this lab challenge: "${section.lab.challenge}"\n\nHere is my code:\n\`\`\`python\n${code}\n\`\`\`\n\nGive feedback: Does it meet the requirements? Any improvements? Rate it: Beginner/Good/Excellent.`;
+    const feedback = document.getElementById('labFeedback');
+    feedback.style.display = 'block';
+    feedback.className = 'lab-feedback';
+    feedback.innerHTML = '<span class="typing-dots"><span>●</span><span>●</span><span>●</span></span> Evaluating...';
+    
+    const evalPrompt = `You are evaluating a beginner's Python code for a learning exercise.
 
-    document.getElementById('chatInput').value = evalPrompt;
-    sendChat();
-    trackLabComplete();
+TASK: ${section.lab.task}
+
+REQUIREMENTS: ${section.lab.requirements.join(", ")}
+
+STUDENT'S CODE:
+\`\`\`python
+${code}
+\`\`\`
+
+Evaluate the code. Be encouraging and beginner-friendly. Format your response EXACTLY like this:
+
+VERDICT: PASS or NEEDS_WORK
+✓ [list what they got right, one per line]
+✗ [list what's missing or wrong, one per line, only if NEEDS_WORK]
+💡 [one specific improvement tip]
+🎉 [one sentence of encouragement]`;
+
+    // Use the AI to evaluate
+    callAIForLab(evalPrompt, feedback);
+}
+
+async function callAIForLab(prompt, feedbackEl) {
+    if (!OPENROUTER_API_KEY) {
+        const key = window.prompt("Enter the AI API key (provided by your instructor):");
+        if (key && key.trim()) {
+            OPENROUTER_API_KEY = key.trim();
+            localStorage.setItem("openrouter_api_key", OPENROUTER_API_KEY);
+        } else {
+            feedbackEl.innerHTML = "No API key. Ask your instructor.";
+            return;
+        }
+    }
+    
+    const models = ["google/gemma-4-31b-it:free","nvidia/nemotron-nano-9b-v2:free","openai/gpt-oss-20b:free"];
+    
+    for (const model of models) {
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + OPENROUTER_API_KEY,
+                    "HTTP-Referer": window.location.href
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: "user", content: prompt }],
+                    max_tokens: 512,
+                    temperature: 0.5
+                })
+            });
+            const data = await response.json();
+            if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+                let answer = data.choices[0].message.content;
+                const isPass = answer.includes("VERDICT: PASS");
+                feedbackEl.className = 'lab-feedback ' + (isPass ? 'pass' : 'needs-work');
+                answer = answer.replace(/VERDICT: (PASS|NEEDS_WORK)/g, isPass ? '✅ PASS — Well done!' : '🔄 NEEDS WORK — Keep trying!');
+                answer = answer.replace(/\n/g, '<br>');
+                feedbackEl.innerHTML = answer;
+                if (isPass) { trackLabComplete(); addXP(25, "Lab passed"); }
+                return;
+            }
+        } catch (e) { continue; }
+    }
+    feedbackEl.innerHTML = "AI is busy. Try again in a moment.";
+}
+
+function showHint() {
+    const section = courseData.modules[currentModule].sections[currentSection];
+    if (!section.lab) return;
+    const feedback = document.getElementById('labFeedback');
+    feedback.style.display = 'block';
+    feedback.className = 'lab-feedback';
+    feedback.innerHTML = '💡 <strong>Hint:</strong> ' + section.lab.hint;
+}
+
+function showSolution() {
+    const section = courseData.modules[currentModule].sections[currentSection];
+    if (!section.lab) return;
+    const feedback = document.getElementById('labFeedback');
+    feedback.style.display = 'block';
+    feedback.className = 'lab-feedback';
+    feedback.innerHTML = '👁 <strong>Solution:</strong><br><pre style="background:#111827;padding:10px;border-radius:6px;margin-top:8px;color:#00d4aa;font-size:12px;white-space:pre-wrap;">' + section.lab.solution + '</pre>';
 }
 
 // ===== Keyboard Navigation =====

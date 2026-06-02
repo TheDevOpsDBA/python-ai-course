@@ -73,11 +73,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
             <span id="revealCount" class="reveal-counter"></span>
         </div>
         <div id="description"></div>
-        <div id="labSection" class="lab-card" style="display:none;">
-            <div class="lab-header">🧪 Lab Challenge</div>
-            <div id="labChallenge" class="lab-challenge"></div>
-            <div id="labHint" class="lab-hint"></div>
-            <button class="lab-evaluate-btn" onclick="evaluateLab()">🤖 Ask AI to Evaluate My Code</button>
+        <div id="labSection" class="hands-on-lab" style="display:none;">
+            <div class="lab-title-bar">
+                <span class="lab-icon">🧪</span>
+                <span class="lab-title">HANDS-ON CHALLENGE</span>
+            </div>
+            <div class="lab-task" id="labTask"></div>
+            <div class="lab-buttons">
+                <button class="lab-check-btn" onclick="checkAnswer()">✓ Check My Code</button>
+                <button class="lab-hint-btn" onclick="showHint()">💡 Hint</button>
+                <button class="lab-solution-btn" onclick="showSolution()">👁 Solution</button>
+            </div>
+            <div class="lab-feedback" id="labFeedback" style="display:none;"></div>
         </div>
         <div class="syntax-accordion">
             <details>
