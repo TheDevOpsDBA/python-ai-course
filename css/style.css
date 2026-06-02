@@ -1489,7 +1489,7 @@ body {
     transition: background 0.2s;
 }
 .leaderboard-btn:hover { background: rgba(99,102,241,0.3); }
-.signout-btn { padding: 4px 8px; }
+.signout-btn { padding: 4px 10px; font-weight: 600; }
 .signout-btn:hover { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.4); color: #fca5a5; }
 
 .leaderboard-overlay {

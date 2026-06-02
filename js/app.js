@@ -499,7 +499,12 @@ async function authSignInGuest() {
 }
 
 async function authSignOut() {
-    if (!window.fbHelpers) return;
+    if (!confirm('Sign out of the lab? Your progress is saved to the cloud and will reload when you sign back in.')) return;
+    if (!window.fbHelpers) {
+        // Local-only fallback mode
+        location.reload();
+        return;
+    }
     try {
         await window.fbHelpers.signOut();
     } catch (e) {}
