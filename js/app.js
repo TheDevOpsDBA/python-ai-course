@@ -1032,6 +1032,219 @@ function showSolution() {
     feedback.innerHTML = '👁 <strong>Solution:</strong><br><pre style="background:#111827;padding:10px;border-radius:6px;margin-top:8px;color:#00d4aa;font-size:12px;white-space:pre-wrap;">' + section.lab.solution + '</pre>';
 }
 
+// ===== CHALLENGE MODE =====
+
+const CHALLENGES = [
+    {
+        id: "ch1",
+        title: "Print the Current Year",
+        task: "Create a variable called `year` set to 2025.\nPrint it using an f-string: \"The year is 2025\"",
+        hints: ["Use year = 2025", "Use f\"The year is {year}\""],
+        solution: "year = 2025\nprint(f\"The year is {year}\")",
+        requirements: ["variable year", "f-string", "print"]
+    },
+    {
+        id: "ch2",
+        title: "Server Status Check",
+        task: "Create a variable `cpu` set to 88.\nWrite an if/else that prints \"ALERT\" if cpu > 85, else prints \"OK\".",
+        hints: ["Start with cpu = 88", "Use if cpu > 85:"],
+        solution: "cpu = 88\nif cpu > 85:\n    print(\"ALERT\")\nelse:\n    print(\"OK\")",
+        requirements: ["variable cpu", "if/else", "prints ALERT or OK"]
+    },
+    {
+        id: "ch3",
+        title: "Count Servers in a List",
+        task: "Create a list with 5 server names.\nPrint how many servers are in the list using len().",
+        hints: ["servers = [\"web-01\", \"web-02\", ...]", "Use len(servers)"],
+        solution: "servers = [\"web-01\", \"web-02\", \"db-01\", \"cache-01\", \"backup-01\"]\nprint(f\"Total servers: {len(servers)}\")",
+        requirements: ["list with 5 items", "len() used", "print"]
+    },
+    {
+        id: "ch4",
+        title: "Loop Through Servers",
+        task: "Create a list of 3 servers.\nLoop through them and print each server name with its index (1, 2, 3).",
+        hints: ["Use enumerate(servers, 1)", "for i, s in enumerate(...)"],
+        solution: "servers = [\"web-01\", \"db-01\", \"cache-01\"]\nfor i, server in enumerate(servers, 1):\n    print(f\"{i}. {server}\")",
+        requirements: ["list", "for loop", "enumerate or index", "prints numbered list"]
+    },
+    {
+        id: "ch5",
+        title: "Dictionary Lookup",
+        task: "Create a dictionary with keys: name, cpu, status.\nPrint the value of 'name' using bracket notation.",
+        hints: ["server = {\"name\": \"web-01\", ...}", "Use server[\"name\"]"],
+        solution: "server = {\"name\": \"web-01\", \"cpu\": 72, \"status\": \"online\"}\nprint(server[\"name\"])",
+        requirements: ["dictionary with 3 keys", "bracket access", "print"]
+    },
+    {
+        id: "ch6",
+        title: "Simple Function",
+        task: "Write a function called `greet(name)` that returns f\"Hello, {name}!\".\nCall it with \"Alice\" and print the result.",
+        hints: ["def greet(name):", "return f\"Hello, {name}!\""],
+        solution: "def greet(name):\n    return f\"Hello, {name}!\"\n\nresult = greet(\"Alice\")\nprint(result)",
+        requirements: ["function greet", "parameter name", "returns f-string", "prints result"]
+    },
+    {
+        id: "ch7",
+        title: "Try/Except Safety",
+        task: "Write code that tries to convert \"abc\" to an integer.\nCatch the ValueError and print \"Not a number!\".",
+        hints: ["try: int(\"abc\")", "except ValueError:"],
+        solution: "try:\n    value = int(\"abc\")\nexcept ValueError:\n    print(\"Not a number!\")",
+        requirements: ["try block", "int() conversion", "except ValueError", "prints error message"]
+    },
+    {
+        id: "ch8",
+        title: "JSON Round-Trip",
+        task: "Import json.\nCreate a dict with name and age.\nConvert to JSON string, print it.\nParse it back and print the name.",
+        hints: ["import json", "json.dumps(data)", "json.loads(json_str)"],
+        solution: "import json\n\ndata = {\"name\": \"Alice\", \"age\": 30}\njson_str = json.dumps(data)\nprint(json_str)\n\nparsed = json.loads(json_str)\nprint(parsed[\"name\"])",
+        requirements: ["import json", "dictionary", "json.dumps", "json.loads", "print both"]
+    },
+    {
+        id: "ch9",
+        title: "List Comprehension Filter",
+        task: "Given numbers = [10, 25, 80, 45, 92, 55, 88]\nUse a list comprehension to get only numbers > 50.\nPrint the filtered list.",
+        hints: ["[x for x in numbers if x > 50]", "Store in a variable, then print"],
+        solution: "numbers = [10, 25, 80, 45, 92, 55, 88]\nhigh = [x for x in numbers if x > 50]\nprint(high)",
+        requirements: ["list comprehension", "filter > 50", "print result"]
+    },
+    {
+        id: "ch10",
+        title: "Format Bytes Function",
+        task: "Write a function format_size(bytes) that:\n- Returns \"X.X KB\" if bytes >= 1024\n- Returns \"X B\" otherwise\nTest with 500 and 2048.",
+        hints: ["if bytes >= 1024: return f\"{bytes/1024:.1f} KB\"", "else: return f\"{bytes} B\""],
+        solution: "def format_size(b):\n    if b >= 1024:\n        return f\"{b/1024:.1f} KB\"\n    return f\"{b} B\"\n\nprint(format_size(500))\nprint(format_size(2048))",
+        requirements: ["function format_size", "if/else for KB", "returns string", "two test calls"]
+    }
+];
+
+let currentChallenge = null;
+let challengeHintIndex = 0;
+
+function openChallengeMode() {
+    document.getElementById('challengeOverlay').style.display = 'flex';
+    showChallengeList();
+}
+
+function closeChallengeMode() {
+    document.getElementById('challengeOverlay').style.display = 'none';
+}
+
+function showChallengeList() {
+    document.getElementById('challengeList').style.display = 'grid';
+    document.getElementById('challengeActive').style.display = 'none';
+    
+    const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+    const list = document.getElementById('challengeList');
+    list.innerHTML = '';
+    
+    CHALLENGES.forEach((ch, i) => {
+        const done = completed.includes(ch.id);
+        const item = document.createElement('div');
+        item.className = 'challenge-item' + (done ? ' completed' : '');
+        item.innerHTML = `
+            <div class="challenge-item-number">#${i + 1}</div>
+            <div class="challenge-item-title">${ch.title}</div>
+            <div class="challenge-item-status ${done ? 'done' : 'pending'}">${done ? '✓ Completed' : '○ Not attempted'}</div>
+        `;
+        item.onclick = () => startChallenge(i);
+        list.appendChild(item);
+    });
+    
+    document.getElementById('challengeProgress').textContent = completed.length + '/' + CHALLENGES.length + ' completed';
+}
+
+function startChallenge(index) {
+    currentChallenge = CHALLENGES[index];
+    challengeHintIndex = 0;
+    
+    document.getElementById('challengeList').style.display = 'none';
+    document.getElementById('challengeActive').style.display = 'block';
+    document.getElementById('challengeNumber').textContent = '#' + (index + 1);
+    document.getElementById('challengeTitle').textContent = currentChallenge.title;
+    document.getElementById('challengeTask').textContent = currentChallenge.task;
+    document.getElementById('challengeFeedback').style.display = 'none';
+    
+    // Set starter code in editor
+    if (editor) {
+        editor.setValue('# Challenge: ' + currentChallenge.title + '\n# Write your solution below\n\n');
+    }
+    
+    // Open right panel if closed
+    const panel = document.getElementById('rightPanel');
+    if (!panel.classList.contains('open')) toggleRightPanel();
+}
+
+function submitChallenge() {
+    if (!currentChallenge) return;
+    
+    const code = editor ? editor.getValue() : '';
+    const feedback = document.getElementById('challengeFeedback');
+    feedback.style.display = 'block';
+    feedback.className = 'challenge-feedback';
+    feedback.innerHTML = '<span class="typing-dots"><span>●</span><span>●</span><span>●</span></span> Evaluating...';
+    
+    const prompt = `You are evaluating a beginner Python student's code for a simple challenge.
+
+CHALLENGE: ${currentChallenge.title}
+TASK: ${currentChallenge.task}
+REQUIREMENTS: ${currentChallenge.requirements.join(', ')}
+
+STUDENT CODE:
+\`\`\`python
+${code}
+\`\`\`
+
+Be very encouraging and beginner-friendly. Evaluate and respond:
+VERDICT: PASS or NEEDS_WORK
+✓ What they did right
+✗ What's missing (only if NEEDS_WORK)
+💡 One helpful tip
+🎉 Encouragement`;
+
+    callAIForLab(prompt, feedback);
+    
+    // Mark as completed if AI says PASS (handled in callAIForLab via trackLabComplete)
+    // Also mark in challenge progress
+    setTimeout(() => {
+        if (feedback.classList.contains('pass')) {
+            const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+            if (!completed.includes(currentChallenge.id)) {
+                completed.push(currentChallenge.id);
+                localStorage.setItem('completedChallenges', JSON.stringify(completed));
+                addXP(30, 'Challenge completed');
+                showToast('🏆 Challenge completed! +30 XP');
+            }
+        }
+    }, 5000);
+}
+
+function showChallengeHint() {
+    if (!currentChallenge) return;
+    const feedback = document.getElementById('challengeFeedback');
+    feedback.style.display = 'block';
+    feedback.className = 'challenge-feedback';
+    
+    if (challengeHintIndex < currentChallenge.hints.length) {
+        feedback.innerHTML = '💡 <strong>Hint ' + (challengeHintIndex + 1) + ':</strong> ' + currentChallenge.hints[challengeHintIndex];
+        challengeHintIndex++;
+    } else {
+        feedback.innerHTML = '💡 No more hints available. Try the solution button!';
+    }
+}
+
+function showChallengeSolution() {
+    if (!currentChallenge) return;
+    const feedback = document.getElementById('challengeFeedback');
+    feedback.style.display = 'block';
+    feedback.className = 'challenge-feedback';
+    feedback.innerHTML = '👁 <strong>Solution:</strong><br><pre style="background:#0a0f1a;padding:10px;border-radius:6px;margin-top:8px;color:#00d4aa;font-size:12px;white-space:pre-wrap;border:1px solid #1e293b;">' + currentChallenge.solution + '</pre>';
+    
+    // Also put it in the editor
+    if (editor) editor.setValue(currentChallenge.solution);
+}
+
+// ===== END CHALLENGE MODE =====
+
 // ===== Keyboard Navigation =====
 // Right arrow reveals/advances, left arrow goes back
 document.addEventListener("keydown", function(e) {

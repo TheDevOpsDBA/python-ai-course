@@ -37,6 +37,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
     <select id="sectionSelect"></select>
     <button onclick="previousSection()">← Prev</button>
     <button onclick="nextSection()">Next →</button>
+    <button class="challenge-mode-btn" onclick="openChallengeMode()">🏆 Challenges</button>
     <span class="section-indicator" id="sectionIndicator">1 / 3</span>
 </div>
 
@@ -172,6 +173,39 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
             <span>UTF-8</span>
             <span id="lineCount">Ln 1</span>
             <span class="statusbar-right">AI Ready ●</span>
+        </div>
+    </div>
+</div>
+
+<!-- Challenge Mode -->
+<div class="challenge-overlay" id="challengeOverlay" style="display:none;" onclick="if(event.target===this)closeChallengeMode()">
+    <div class="challenge-panel">
+        <div class="challenge-panel-header">
+            <h3>🏆 Coding Challenges</h3>
+            <span class="challenge-progress" id="challengeProgress">0/10 completed</span>
+            <button class="challenge-close" onclick="closeChallengeMode()">✕</button>
+        </div>
+        
+        <!-- Challenge List (picker) -->
+        <div class="challenge-list" id="challengeList"></div>
+        
+        <!-- Active Challenge View -->
+        <div class="challenge-active" id="challengeActive" style="display:none;">
+            <button class="challenge-back-btn" onclick="showChallengeList()">← Back to list</button>
+            <div class="challenge-card">
+                <div class="challenge-card-header">
+                    <span class="challenge-number" id="challengeNumber">#1</span>
+                    <span class="challenge-card-title" id="challengeTitle"></span>
+                </div>
+                <div class="challenge-task" id="challengeTask"></div>
+                <p class="challenge-instruction">Write your solution in the code editor (open the right panel) and click Submit.</p>
+                <div class="challenge-actions">
+                    <button class="challenge-submit" onclick="submitChallenge()">✓ Submit Solution</button>
+                    <button class="challenge-hint-btn" onclick="showChallengeHint()">💡 Hint</button>
+                    <button class="challenge-solution-btn" onclick="showChallengeSolution()">👁 Solution</button>
+                </div>
+                <div class="challenge-feedback" id="challengeFeedback" style="display:none;"></div>
+            </div>
         </div>
     </div>
 </div>
