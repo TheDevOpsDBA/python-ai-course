@@ -20,9 +20,6 @@ import {
     get,
     update,
     onValue,
-    query,
-    orderByChild,
-    limitToLast,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
 
@@ -95,14 +92,29 @@ window.fbHelpers = {
         });
     },
 
-    // Real-time leaderboard subscription — top N users by XP
+    // Real-time leaderboard subscription.
+    // We listen on the entire /users path (not orderByChild) so that records
+    // missing/null xp still appear. Sort + slice happen client-side.
     subscribeLeaderboard: (limit, cb) => {
-        const q = query(ref(db, "users"), orderByChild("xp"), limitToLast(limit));
-        return onValue(q, (snap) => {
+        return onValue(ref(db, "users"), (snap) => {
             const list = [];
-            snap.forEach((child) => list.push(child.val()));
-            list.sort((a, b) => (b.xp || 0) - (a.xp || 0));
-            cb(list);
+            snap.forEach((child) => {
+                const val = child.val() || {};
+                // Ensure required fields have safe defaults
+                list.push({
+                    uid: val.uid || child.key,
+                    displayName: val.displayName || (val.email ? val.email.split('@')[0] : 'Anonymous'),
+                    xp: typeof val.xp === 'number' ? val.xp : 0,
+                    level: val.level || 1,
+                    badges: val.badges || [],
+                    course: val.course || ''
+                });
+            });
+            list.sort((a, b) => b.xp - a.xp);
+            cb(list.slice(0, limit));
+        }, (err) => {
+            console.error("Leaderboard read failed:", err);
+            cb([]);
         });
     }
 };
