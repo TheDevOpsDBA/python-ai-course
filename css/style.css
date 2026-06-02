@@ -1622,3 +1622,20 @@ body {
     cursor: not-allowed;
     pointer-events: none;
 }
+
+
+/* Challenge picker — "Attended" (gave up + viewed solution) state */
+.challenge-item.attended {
+    border-color: rgba(245, 158, 11, 0.35);
+    background: linear-gradient(135deg, rgba(245,158,11,0.05), rgba(15,23,42,0.6));
+    opacity: 0.85;
+}
+.challenge-item-status.attended {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    display: inline-block;
+}

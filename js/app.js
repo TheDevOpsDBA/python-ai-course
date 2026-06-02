@@ -1375,23 +1375,43 @@ function showChallengeList() {
     document.getElementById('challengeActive').style.display = 'none';
     
     const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+    const viewed = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
     const list = document.getElementById('challengeList');
     list.innerHTML = '';
     
     CHALLENGES.forEach((ch, i) => {
         const done = completed.includes(ch.id);
+        const attendedOnly = !done && viewed.includes(ch.id);
+
+        let statusClass = 'pending';
+        let statusText = '○ Not attempted';
+        let cardClass = '';
+
+        if (done) {
+            statusClass = 'done';
+            statusText = '✓ Completed';
+            cardClass = ' completed';
+        } else if (attendedOnly) {
+            statusClass = 'attended';
+            statusText = '👁 Solution viewed';
+            cardClass = ' attended';
+        }
+
         const item = document.createElement('div');
-        item.className = 'challenge-item' + (done ? ' completed' : '');
+        item.className = 'challenge-item' + cardClass;
         item.innerHTML = `
             <div class="challenge-item-number">#${i + 1}</div>
             <div class="challenge-item-title">${ch.title}</div>
-            <div class="challenge-item-status ${done ? 'done' : 'pending'}">${done ? '✓ Completed' : '○ Not attempted'}</div>
+            <div class="challenge-item-status ${statusClass}">${statusText}</div>
         `;
         item.onclick = () => startChallenge(i);
         list.appendChild(item);
     });
-    
-    document.getElementById('challengeProgress').textContent = completed.length + '/' + CHALLENGES.length + ' completed';
+
+    const attendedOnlyCount = viewed.filter(id => !completed.includes(id)).length;
+    const summary = completed.length + '/' + CHALLENGES.length + ' completed' +
+        (attendedOnlyCount > 0 ? ' • ' + attendedOnlyCount + ' attended' : '');
+    document.getElementById('challengeProgress').textContent = summary;
 }
 
 function startChallenge(index) {
@@ -1408,13 +1428,16 @@ function startChallenge(index) {
     
     const editorEl = document.getElementById('challengeEditor');
 
-    // If the user has already viewed the official solution, lock the editor
-    // and show the solution. Solution-viewed state persists in localStorage and Firebase.
+    // If the user has already viewed the official solution for this challenge,
+    // load the solution and lock the editor permanently. They cannot retry.
     const viewedSolutions = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
+    const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+
     if (viewedSolutions.includes(currentChallenge.id)) {
         editorEl.value = currentChallenge.solution;
         lockChallengeEditor(true);
-        showChallengeLockedNotice();
+        const completedByPass = completed.includes(currentChallenge.id);
+        showChallengeLockedNotice(completedByPass);
     } else {
         editorEl.value = '# Challenge: ' + currentChallenge.title + '\n# Write your solution below\n\n';
         lockChallengeEditor(false);
@@ -1442,11 +1465,15 @@ function lockChallengeEditor(locked) {
     }
 }
 
-function showChallengeLockedNotice() {
+function showChallengeLockedNotice(completedByPass) {
     const feedback = document.getElementById('challengeFeedback');
     feedback.style.display = 'block';
     feedback.className = 'challenge-feedback locked';
-    feedback.innerHTML = '🔒 <strong>Challenge complete.</strong> The official solution is shown for reference. Editor is locked.';
+    if (completedByPass) {
+        feedback.innerHTML = '🔒 <strong>Challenge complete.</strong> The official solution is shown for reference. Editor is locked.';
+    } else {
+        feedback.innerHTML = '👁 <strong>Solution viewed — challenge attended (no XP).</strong> The official solution is shown for reference. Editor is locked and this challenge cannot be retried.';
+    }
 }
 
 async function runAndSubmitChallenge() {
@@ -1543,22 +1570,21 @@ function showChallengeSolution() {
     if (!currentChallenge) return;
 
     const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+    const isAlreadyCompleted = completed.includes(currentChallenge.id);
     const feedback = document.getElementById('challengeFeedback');
-    feedback.style.display = 'block';
-
-    // Gate: only allow viewing solution after the challenge is completed.
-    if (!completed.includes(currentChallenge.id)) {
-        feedback.className = 'challenge-feedback needs-work';
-        feedback.innerHTML = '🔒 <strong>Solution locked.</strong> Submit a passing answer first to unlock the official solution. Use 💡 Hint if you need a nudge.';
-        return;
-    }
 
     // Confirm before revealing — viewing the solution permanently locks the editor.
-    const ok = confirm(
-        'Viewing the official solution will permanently lock this challenge\u2019s editor (you won\u2019t be able to edit it again).\n\nProceed?'
-    );
-    if (!ok) {
-        feedback.style.display = 'none';
+    let confirmMsg;
+    if (isAlreadyCompleted) {
+        confirmMsg = 'You\u2019ve already completed this challenge. Viewing the official solution will lock the editor for reference.\n\nProceed?';
+    } else {
+        confirmMsg =
+            'Heads up: viewing the official solution will mark this challenge as ATTENDED (not completed) ' +
+            'and you will NOT earn XP for it. The editor will be locked and you cannot retry this challenge.\n\n' +
+            'Do you want to give up and see the solution?';
+    }
+
+    if (!confirm(confirmMsg)) {
         return;
     }
 
@@ -1578,8 +1604,25 @@ function showChallengeSolution() {
     }
 
     lockChallengeEditor(true);
+    feedback.style.display = 'block';
     feedback.className = 'challenge-feedback locked';
-    feedback.innerHTML = '👁 <strong>Official solution shown above.</strong> Editor is now locked for this challenge.';
+
+    if (isAlreadyCompleted) {
+        feedback.innerHTML = '👁 <strong>Official solution shown above.</strong> Editor is locked.';
+    } else {
+        feedback.innerHTML = '👁 <strong>Solution shown — challenge attended (no XP awarded).</strong> Editor is locked. This challenge cannot be retried.';
+        showToast('👁 Challenge attended — no XP earned');
+    }
+
+    // Refresh challenge list summary so the badge shows up
+    const progressLabel = document.getElementById('challengeProgress');
+    if (progressLabel) {
+        const total = CHALLENGES.length;
+        const completedCount = completed.length;
+        const attendedOnly = viewed.filter(id => !completed.includes(id)).length;
+        progressLabel.textContent = completedCount + '/' + total + ' completed' +
+            (attendedOnly > 0 ? ' • ' + attendedOnly + ' attended' : '');
+    }
 }
 
 // ===== END CHALLENGE MODE =====
