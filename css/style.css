@@ -207,6 +207,7 @@ body {
     z-index: 100;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 .right-panel.open { transform: translateX(0); }
 
@@ -307,12 +308,12 @@ body {
 
 /* Editor Area */
 .editor-area {
-    flex: 1;
-    min-height: 200px;
+    min-height: 180px;
+    max-height: 300px;
     overflow: hidden;
 }
 .CodeMirror {
-    height: 100% !important;
+    height: 250px !important;
     font-size: 13px;
     font-family: 'JetBrains Mono', monospace !important;
     border-radius: 0;
