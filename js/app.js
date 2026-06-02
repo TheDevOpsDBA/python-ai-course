@@ -480,6 +480,24 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
     addChatMessage(`All models busy. Please try again in a moment. (${lastError})`, "bot");
 }
 
+function toggleRightPanel() {
+    var panel = document.getElementById('rightPanel');
+    var toggle = document.getElementById('panelToggle');
+    var left = document.getElementById('leftPanel');
+    
+    panel.classList.toggle('open');
+    toggle.classList.toggle('shifted');
+    left.classList.toggle('shifted');
+    
+    if (panel.classList.contains('open')) {
+        toggle.innerHTML = '&#x25B6; Close';
+    } else {
+        toggle.innerHTML = '&#x25C0; Code &amp; AI';
+    }
+    
+    // Refresh CodeMirror after transition
+    setTimeout(function() { if (editor) editor.refresh(); }, 350);
+}
 // Keyboard navigation â€” right arrow reveals/advances, left arrow goes back
 document.addEventListener("keydown", function(e) {
     // Don't intercept if user is typing in editor, textarea, or chat input
