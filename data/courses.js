@@ -164,7 +164,12 @@ const courseData = {
               "code": "# Python infers types automatically\nname     = \"db-primary\"   # str\nreplicas = 3               # int\nlag_ms   = 0.45            # float\nsynced   = True            # bool\ntags     = None            # NoneType\n\nvalues = [name, replicas, lag_ms, synced, tags]\nfor v in values:\n    print(f\"  Value: {str(v):<15}  Type: {type(v).__name__}\")"
             }
           ],
-          "brief": "<h4>Variables</h4><ul><li>Named reference to a value in memory</li><li>Dynamic typing — Python infers the type automatically</li><li>Naming: <code>snake_case</code>, start with letter or underscore</li><li><code>=</code> assigns a value: <code>host = \"web-01\"</code></li><li>Change one variable, the whole script adapts</li></ul>"
+          "brief": "<h4>Variables</h4><ul><li>Named reference to a value in memory</li><li>Dynamic typing — Python infers the type automatically</li><li>Naming: <code>snake_case</code>, start with letter or underscore</li><li><code>=</code> assigns a value: <code>host = \"web-01\"</code></li><li>Change one variable, the whole script adapts</li></ul>",
+          "lab": {
+            "title": "Lab: Server Metrics Variables",
+            "challenge": "Create variables for 5 servers (server1 through server5). Each should have a name (string), cpu usage (int), memory usage (int), and a boolean indicating if it's online. Then print a formatted summary of all 5 servers.",
+            "hint": "Use descriptive variable names like server1_name, server1_cpu, server1_mem, server1_online"
+          }
         },
         {
           "id": "m2s2",
@@ -233,7 +238,12 @@ const courseData = {
               "code": "# List comprehensions — concise and Pythonic\nall_hosts = [\"web-01\", \"web-02\", \"db-01\", \"db-02\", \"cache-01\", \"backup-01\"]\n\n# Filter by prefix\nweb_servers = [h for h in all_hosts if h.startswith(\"web\")]\ndb_servers  = [h for h in all_hosts if h.startswith(\"db\")]\n\n# Transform\nupper_hosts = [h.upper() for h in all_hosts]\n\nprint(f\"All hosts    : {all_hosts}\")\nprint(f\"Web servers  : {web_servers}\")\nprint(f\"DB servers   : {db_servers}\")\nprint(f\"Uppercased   : {upper_hosts}\")"
             }
           ],
-          "brief": "<h4>Lists</h4><ul><li>Ordered, mutable collection: <code>servers = [\"web-01\", \"db-01\"]</code></li><li>Indexed: <code>list[0]</code> first, <code>list[-1]</code> last</li><li>Methods: <code>.append()</code>, <code>.remove()</code>, <code>.pop()</code>, <code>.sort()</code></li><li>Slicing: <code>list[1:4]</code> extracts a sub-list</li><li>List comprehension: <code>[x for x in data if x > 80]</code></li></ul>"
+          "brief": "<h4>Lists</h4><ul><li>Ordered, mutable collection: <code>servers = [\"web-01\", \"db-01\"]</code></li><li>Indexed: <code>list[0]</code> first, <code>list[-1]</code> last</li><li>Methods: <code>.append()</code>, <code>.remove()</code>, <code>.pop()</code>, <code>.sort()</code></li><li>Slicing: <code>list[1:4]</code> extracts a sub-list</li><li>List comprehension: <code>[x for x in data if x > 80]</code></li></ul>",
+          "lab": {
+            "title": "Lab: Filter High-CPU Servers",
+            "challenge": "Create a list of dictionaries representing 8 servers, each with 'name' and 'cpu' keys. Write code to filter and print only the servers where CPU usage is above 80%. Use a list comprehension.",
+            "hint": "Use a list comprehension: [s for s in servers if s['cpu'] > 80]"
+          }
         },
         {
           "id": "m3s2",
@@ -275,7 +285,12 @@ const courseData = {
               "code": "# Using a dictionary as an application config store\nconfig = {\n    \"app_name\":    \"InfraMonitor\",\n    \"version\":     \"2.4.1\",\n    \"debug\":       False,\n    \"log_level\":   \"INFO\",\n    \"db_host\":     \"db-primary.internal\",\n    \"db_port\":     5432,\n    \"alert_email\": \"ops@company.com\",\n    \"thresholds\":  {\"cpu\": 85, \"memory\": 90, \"disk\": 80},\n}\n\nprint(f\"App: {config['app_name']} v{config['version']}\")\nprint(f\"Log level : {config['log_level']}\")\nprint(f\"Database  : {config['db_host']}:{config['db_port']}\")\nprint(\"\\nAlert Thresholds:\")\nfor metric, limit in config['thresholds'].items():\n    print(f\"  {metric:<10}: {limit}%\")"
             }
           ],
-          "brief": "<h4>Dictionaries</h4><ul><li>Key-value pairs: <code>server = {\"name\": \"web-01\", \"cpu\": 72}</code></li><li>O(1) fast lookup by key</li><li>Access: <code>server[\"name\"]</code> or <code>server.get(\"port\", 80)</code></li><li>Mutable: add, update, delete keys anytime</li><li>Iterate: <code>for key, val in dict.items()</code></li><li>Ideal for config, API responses, structured data</li></ul>"
+          "brief": "<h4>Dictionaries</h4><ul><li>Key-value pairs: <code>server = {\"name\": \"web-01\", \"cpu\": 72}</code></li><li>O(1) fast lookup by key</li><li>Access: <code>server[\"name\"]</code> or <code>server.get(\"port\", 80)</code></li><li>Mutable: add, update, delete keys anytime</li><li>Iterate: <code>for key, val in dict.items()</code></li><li>Ideal for config, API responses, structured data</li></ul>",
+          "lab": {
+            "title": "Lab: Server Inventory Dictionary",
+            "challenge": "Create a nested dictionary called 'inventory' representing a server inventory. It should have 3 environments ('production', 'staging', 'development'), each containing a list of server dicts with 'name', 'ip', 'role', and 'cpu' keys. Print a formatted report showing all servers grouped by environment.",
+            "hint": "Use nested dicts: inventory = {'production': [{'name': 'web-01', ...}], ...} then loop with .items()"
+          }
         }
       ]
     },
@@ -371,7 +386,12 @@ const courseData = {
               "code": "# Validating configuration input\ndef validate_port(port):\n    if not isinstance(port, int):\n        return False, \"Port must be an integer\"\n    elif port < 1 or port > 65535:\n        return False, f\"Port {port} out of valid range (1-65535)\"\n    elif port < 1024:\n        return True, f\"Port {port} is a privileged port (requires root)\"\n    else:\n        return True, f\"Port {port} is valid\"\n\ntest_ports = [80, 443, 8080, 0, 70000, 22, \"abc\"]\n\nfor p in test_ports:\n    valid, message = validate_port(p)\n    status = \"PASS\" if valid else \"FAIL\"\n    print(f\"  [{status}] {str(p):<8} {message}\")"
             }
           ],
-          "brief": "<h4>If / Else</h4><ul><li><code>if</code> → <code>elif</code> → <code>else</code> — branching logic</li><li>Indentation (4 spaces) defines code blocks</li><li>Ternary: <code>status = \"OK\" if cpu &lt; 80 else \"ALERT\"</code></li><li>Drives alert logic, validation, and remediation</li><li>Only the first matching branch executes</li></ul>"
+          "brief": "<h4>If / Else</h4><ul><li><code>if</code> → <code>elif</code> → <code>else</code> — branching logic</li><li>Indentation (4 spaces) defines code blocks</li><li>Ternary: <code>status = \"OK\" if cpu &lt; 80 else \"ALERT\"</code></li><li>Drives alert logic, validation, and remediation</li><li>Only the first matching branch executes</li></ul>",
+          "lab": {
+            "title": "Lab: Multi-Level Alert Classifier",
+            "challenge": "Write a function called classify_alert(cpu, memory, disk) that returns: 'CRITICAL' if any metric is above 95, 'HIGH' if any is above 85, 'WARNING' if any is above 75, 'ELEVATED' if any is above 60, or 'OK' otherwise. Test it with at least 5 different input combinations and print the results.",
+            "hint": "Check conditions from highest to lowest using if/elif/else. Use max() or check each value individually."
+          }
         },
         {
           "id": "m5s2",
@@ -392,7 +412,12 @@ const courseData = {
               "code": "# Using break and continue in log processing\nlogs = [\n    \"INFO  Service started\",\n    \"INFO  Request received\",\n    \"WARN  Response time elevated: 450ms\",\n    \"ERROR Disk write failed: /var/log/app.log\",\n    \"INFO  Retry scheduled\",\n    \"FATAL Out of memory — process killed\",\n    \"INFO  This line won't be reached\",\n]\n\nprint(\"Processing logs (stop at FATAL):\")\nfor line in logs:\n    if line.startswith(\"INFO\"):\n        continue   # skip informational lines\n    if line.startswith(\"FATAL\"):\n        print(f\"  [FATAL] {line} — halting processing\")\n        break\n    print(f\"  [ISSUE] {line}\")"
             }
           ],
-          "brief": "<h4>Loops</h4><ul><li><code>for item in collection:</code> — iterate over sequences</li><li><code>while condition:</code> — repeat until condition is false</li><li><code>break</code> — exit loop early</li><li><code>continue</code> — skip to next iteration</li><li><code>enumerate()</code> — get index + value together</li></ul>"
+          "brief": "<h4>Loops</h4><ul><li><code>for item in collection:</code> — iterate over sequences</li><li><code>while condition:</code> — repeat until condition is false</li><li><code>break</code> — exit loop early</li><li><code>continue</code> — skip to next iteration</li><li><code>enumerate()</code> — get index + value together</li></ul>",
+          "lab": {
+            "title": "Lab: Server Status Report",
+            "challenge": "Create a list of 6 server dictionaries with 'name', 'cpu', 'memory', and 'status' fields. Loop through them and print a formatted status report. Include a summary at the end showing: total servers, how many are online, how many have CPU > 80%, and the average CPU across all servers.",
+            "hint": "Use a for loop with f-strings for formatting. Track counters and sums as you iterate."
+          }
         },
         {
           "id": "m5s3",
@@ -440,7 +465,12 @@ const courseData = {
               "code": "# Well-documented functions with docstrings\ndef calculate_sla_uptime(total_minutes, downtime_minutes):\n    \"\"\"\n    Calculate SLA uptime percentage.\n\n    Args:\n        total_minutes (int): Total period in minutes.\n        downtime_minutes (int): Total downtime in minutes.\n\n    Returns:\n        float: Uptime percentage rounded to 3 decimal places.\n    \"\"\"\n    if total_minutes <= 0:\n        raise ValueError(\"total_minutes must be greater than zero\")\n    uptime = ((total_minutes - downtime_minutes) / total_minutes) * 100\n    return round(uptime, 3)\n\n# Monthly SLA calculation\nmonth_minutes = 30 * 24 * 60   # 43,200 minutes\ndowntime      = 45              # 45 minutes of downtime\n\nuptime = calculate_sla_uptime(month_minutes, downtime)\nprint(f\"Period    : {month_minutes:,} minutes\")\nprint(f\"Downtime  : {downtime} minutes\")\nprint(f\"Uptime    : {uptime}%\")\nprint(f\"SLA 99.9% : {'PASS' if uptime >= 99.9 else 'FAIL'}\")"
             }
           ],
-          "brief": "<h4>Creating Functions</h4><ul><li><code>def name(params):</code> — declares a function</li><li>Docstring documents what it does</li><li><code>return</code> sends a value back to the caller</li><li>Eliminates repetition — write once, call anywhere</li><li>Makes code testable, readable, and maintainable</li></ul>"
+          "brief": "<h4>Creating Functions</h4><ul><li><code>def name(params):</code> — declares a function</li><li>Docstring documents what it does</li><li><code>return</code> sends a value back to the caller</li><li>Eliminates repetition — write once, call anywhere</li><li>Makes code testable, readable, and maintainable</li></ul>",
+          "lab": {
+            "title": "Lab: Bytes Formatter Function",
+            "challenge": "Write a function called format_bytes(size_bytes) that converts a number of bytes into a human-readable string. It should return values like '1.50 KB', '2.30 MB', '1.10 GB', etc. Handle bytes, KB, MB, GB, and TB. Test it with values: 500, 1536, 5242880, 1073741824, 2199023255552.",
+            "hint": "Divide by 1024 repeatedly and track the unit. Use a list of units: ['B', 'KB', 'MB', 'GB', 'TB']"
+          }
         },
         {
           "id": "m6s2",
@@ -509,7 +539,12 @@ const courseData = {
               "code": "# Simulating robust API call with error handling\nimport json\n\ndef parse_api_response(response_text):\n    \"\"\"Parse a JSON API response safely.\"\"\"\n    try:\n        data = json.loads(response_text)\n    except json.JSONDecodeError as e:\n        return None, f\"Invalid JSON: {e}\"\n\n    try:\n        status = data[\"status\"]\n        metrics = data[\"metrics\"]\n        cpu = float(metrics[\"cpu\"])\n    except KeyError as e:\n        return None, f\"Missing field in response: {e}\"\n    except (ValueError, TypeError) as e:\n        return None, f\"Invalid metric value: {e}\"\n\n    return {\"status\": status, \"cpu\": cpu}, None\n\nresponses = [\n    '{\"status\": \"ok\", \"metrics\": {\"cpu\": \"74.2\"}}',\n    '{\"status\": \"ok\"}',\n    'not valid json',\n    '{\"status\": \"ok\", \"metrics\": {\"cpu\": \"N/A\"}}',\n]\n\nfor r in responses:\n    result, error = parse_api_response(r)\n    if error:\n        print(f\"  [FAIL] {error}\")\n    else:\n        print(f\"  [OK]   status={result['status']} cpu={result['cpu']}%\")"
             }
           ],
-          "brief": "<h4>Try / Except</h4><ul><li>Wrap risky code in <code>try:</code> block</li><li><code>except SpecificError as e:</code> — catch and handle</li><li>Always catch specific exceptions, not bare <code>except:</code></li><li>Common: <code>ValueError</code>, <code>KeyError</code>, <code>FileNotFoundError</code></li><li>Prevents crashes, enables graceful degradation</li></ul>"
+          "brief": "<h4>Try / Except</h4><ul><li>Wrap risky code in <code>try:</code> block</li><li><code>except SpecificError as e:</code> — catch and handle</li><li>Always catch specific exceptions, not bare <code>except:</code></li><li>Common: <code>ValueError</code>, <code>KeyError</code>, <code>FileNotFoundError</code></li><li>Prevents crashes, enables graceful degradation</li></ul>",
+          "lab": {
+            "title": "Lab: Connection Failure Handler",
+            "challenge": "Write a function called safe_connect(host, port) that simulates connecting to a server. Use try/except to handle: ValueError (invalid port), TimeoutError (simulate with a random check), and a general ConnectionError. The function should retry up to 3 times on TimeoutError before giving up. Print clear status messages for each attempt.",
+            "hint": "Use a while loop for retries inside a try/except. Raise TimeoutError randomly using: if random.random() < 0.5: raise TimeoutError"
+          }
         },
         {
           "id": "m7s2",
@@ -557,7 +592,12 @@ const courseData = {
               "code": "# Analysing log data — counting by level and host\nlog_data = \"\"\"2024-01-15 08:00:01 INFO  web-01 Started\n2024-01-15 08:00:45 WARN  web-02 Slow response\n2024-01-15 08:01:12 ERROR db-01  Connection failed\n2024-01-15 08:01:30 INFO  web-01 Request OK\n2024-01-15 08:02:05 ERROR web-02 Disk error\n2024-01-15 08:02:44 ERROR db-01  Timeout\n2024-01-15 08:03:01 WARN  web-01 Memory elevated\"\"\"\n\nby_level = {}\nby_host  = {}\n\nfor line in log_data.splitlines():\n    parts = line.split()\n    if len(parts) < 4:\n        continue\n    level = parts[2]\n    host  = parts[3]\n    by_level[level] = by_level.get(level, 0) + 1\n    by_host[host]   = by_host.get(host, 0) + 1\n\nprint(\"By Level:\")\nfor level, count in sorted(by_level.items()):\n    print(f\"  {level:<8}: {count}\")\n\nprint(\"\\nBy Host:\")\nfor host, count in sorted(by_host.items()):\n    print(f\"  {host:<10}: {count}\")"
             }
           ],
-          "brief": "<h4>Reading Files</h4><ul><li><code>with open(path, \"r\") as f:</code> — auto-closes file</li><li><code>f.read()</code> — entire file as string</li><li><code>f.readlines()</code> — list of lines</li><li><code>for line in f:</code> — memory-efficient iteration</li><li>Always specify <code>encoding=\"utf-8\"</code></li></ul>"
+          "brief": "<h4>Reading Files</h4><ul><li><code>with open(path, \"r\") as f:</code> — auto-closes file</li><li><code>f.read()</code> — entire file as string</li><li><code>f.readlines()</code> — list of lines</li><li><code>for line in f:</code> — memory-efficient iteration</li><li>Always specify <code>encoding=\"utf-8\"</code></li></ul>",
+          "lab": {
+            "title": "Lab: Config File Validator",
+            "challenge": "Write a function called validate_config(config_text) that takes a JSON string (simulating a config file), parses it, and validates that these required fields exist: 'host', 'port', 'database', and 'timeout'. Return a dict with 'valid' (bool) and 'missing' (list of missing field names). Test with both valid and invalid config strings.",
+            "hint": "Use json.loads() to parse the string. Compare required fields against the parsed dict's keys."
+          }
         },
         {
           "id": "m8s2",

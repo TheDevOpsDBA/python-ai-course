@@ -129,6 +129,14 @@ function renderSection() {
         editor.setValue("# No examples available");
     }
 
+    // Pulse toggle when section has code
+    const toggleBtn = document.getElementById('panelToggle');
+    if (section.examples && section.examples.length > 0) {
+        toggleBtn.classList.add('has-code');
+    } else {
+        toggleBtn.classList.remove('has-code');
+    }
+
     // Update breadcrumb
     document.getElementById('breadcrumb').textContent =
         courseData.modules[currentModule].title + ' > ' + section.title;
@@ -149,6 +157,16 @@ function renderSection() {
     setTimeout(() => {
         if (editor) document.getElementById('lineCount').textContent = 'Lines: ' + editor.lineCount();
     }, 100);
+
+    // Show/hide lab section
+    const labSection = document.getElementById('labSection');
+    if (section.lab) {
+        labSection.style.display = 'block';
+        document.getElementById('labChallenge').textContent = section.lab.challenge;
+        document.getElementById('labHint').textContent = '💡 Hint: ' + section.lab.hint;
+    } else {
+        labSection.style.display = 'none';
+    }
 
     // Mark previous section complete
     markSectionComplete();
@@ -312,14 +330,20 @@ function initReveal() {
 
 function revealNext() {
     if (revealIndex < revealItems.length) {
-        revealItems[revealIndex].classList.add("revealed");
+        const item = revealItems[revealIndex];
+        item.style.transitionDelay = '0ms';
+        item.classList.add("revealed");
         revealIndex++;
         updateRevealCounter();
     }
 }
 
 function revealAll() {
-    revealItems.forEach(item => item.classList.add("revealed"));
+    revealItems.forEach((item, i) => {
+        setTimeout(() => {
+            item.classList.add("revealed");
+        }, i * 50);
+    });
     revealIndex = revealItems.length;
     updateRevealCounter();
 }
@@ -467,6 +491,8 @@ function toggleRightPanel() {
 
     if (panel.classList.contains('open')) {
         toggle.innerHTML = '&#x25B6; Close';
+        // Stop pulse when panel is opened
+        toggle.classList.remove('has-code');
     } else {
         toggle.innerHTML = '&#x25C0; Code &amp; AI';
     }
@@ -506,7 +532,7 @@ async function sendChat() {
         }
     }
 
-    const loadingMsg = addChatMessage("Thinking...", "bot loading");
+    const loadingMsg = addChatMessage('<span class="typing-dots"><span>●</span><span>●</span><span>●</span></span>', "bot loading");
 
     const code = editor ? editor.getValue() : "";
     const section = courseData.modules[currentModule].sections[currentSection];
@@ -577,6 +603,24 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
 
     loadingMsg.remove();
     addChatMessage(`All models busy. Please try again in a moment. (${lastError})`, "bot");
+}
+
+// ===== Lab Evaluation =====
+
+function evaluateLab() {
+    const section = courseData.modules[currentModule].sections[currentSection];
+    if (!section.lab) return;
+
+    // Open the right panel if closed
+    const panel = document.getElementById('rightPanel');
+    if (!panel.classList.contains('open')) toggleRightPanel();
+
+    // Set chat input with evaluation request
+    const code = editor ? editor.getValue() : "";
+    const evalPrompt = `Evaluate my solution for this lab challenge: "${section.lab.challenge}"\n\nHere is my code:\n\`\`\`python\n${code}\n\`\`\`\n\nGive feedback: Does it meet the requirements? Any improvements? Rate it: Beginner/Good/Excellent.`;
+
+    document.getElementById('chatInput').value = evalPrompt;
+    sendChat();
 }
 
 // ===== Keyboard Navigation =====

@@ -410,6 +410,72 @@ body {
     padding: 20px;
 }
 
+/* Pulse animation on panel toggle */
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: -2px 0 12px rgba(0,0,0,0.4); }
+    50% { box-shadow: -2px 0 20px rgba(0,212,170,0.6), 0 0 30px rgba(99,102,241,0.3); }
+}
+
+.panel-toggle.has-code {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* AI Typing Dots */
+.typing-dots span {
+    display: inline-block;
+    animation: typing-bounce 1.4s infinite;
+    font-size: 16px;
+    color: #00d4aa;
+    margin: 0 2px;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Lab Activities */
+.lab-card {
+    background: #1a2332;
+    border: 1px solid #6366f1;
+    border-radius: 10px;
+    padding: 14px;
+    margin: 16px 0;
+}
+.lab-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6366f1;
+    margin-bottom: 8px;
+}
+.lab-challenge {
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+.lab-hint {
+    font-size: 12px;
+    color: #94a3b8;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+.lab-evaluate-btn {
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.lab-evaluate-btn:hover {
+    background: #4f46e5;
+}
+
 /* Mobile */
 @media(max-width:768px) {
     .right-panel { width: 90%; }
