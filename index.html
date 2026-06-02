@@ -16,6 +16,39 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 </head>
 <body>
 
+<!-- Login / Sign-up Screen -->
+<div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+        <img src="images/Powershell Academy Logo 300-300.png" alt="PowerShell Academy" class="auth-logo">
+        <h2 class="auth-title">Python for AI Lab</h2>
+        <p class="auth-subtitle">Sign in to track progress, earn badges, and join the leaderboard.</p>
+
+        <button class="auth-google-btn" onclick="authSignInGoogle()">
+            <span class="google-icon">G</span> Continue with Google
+        </button>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login" onclick="authSwitchTab('login')">Sign In</button>
+            <button class="auth-tab" data-tab="signup" onclick="authSwitchTab('signup')">Sign Up</button>
+        </div>
+
+        <div class="auth-form" id="authForm">
+            <input type="text" id="authName" placeholder="Display name" style="display:none;">
+            <input type="email" id="authEmail" placeholder="Email">
+            <input type="password" id="authPassword" placeholder="Password (min 6 chars)">
+            <button class="auth-submit-btn" id="authSubmitBtn" onclick="authSubmit()">Sign In</button>
+            <div class="auth-error" id="authError"></div>
+        </div>
+
+        <div class="auth-guest">
+            <a href="#" onclick="authSignInGuest(); return false;">Continue as guest</a>
+            <span class="auth-guest-note">— progress saved on this device only</span>
+        </div>
+    </div>
+</div>
+
 <nav class="top-bar">
     <a href="https://www.powershellacademy.com/s/store" target="_blank" class="logo-link">
         <img src="images/Powershell Academy Logo 300-300.png" alt="PowerShell Academy" class="nav-logo">
@@ -30,6 +63,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
         <span class="xp-text" id="xpText">0 XP</span>
         <span class="streak-display" id="streakDisplay" title="Daily Streak">🔥0</span>
         <button class="badge-btn" onclick="showBadges()" title="View Badges">🏅</button>
+        <button class="leaderboard-btn" onclick="openLeaderboard()" title="Leaderboard">🏆 Leaderboard</button>
+        <button class="signout-btn" onclick="authSignOut()" title="Sign out">⎋</button>
     </div>
 </nav>
 
@@ -251,6 +286,21 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
     </div>
 </div>
 
+<!-- Leaderboard modal -->
+<div class="leaderboard-overlay" id="leaderboardOverlay" style="display:none;" onclick="if(event.target===this)closeLeaderboard()">
+    <div class="leaderboard-card">
+        <div class="leaderboard-header">
+            <h3>🏆 Live Leaderboard</h3>
+            <span class="leaderboard-subtitle" id="leaderboardSubtitle">Top 25 learners — updates in real time</span>
+            <button class="leaderboard-close" onclick="closeLeaderboard()">✕</button>
+        </div>
+        <div class="leaderboard-list" id="leaderboardList">
+            <div class="leaderboard-loading">Loading…</div>
+        </div>
+        <div class="leaderboard-footer" id="leaderboardFooter"></div>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 
@@ -258,6 +308,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 
 <script src="data/courses.js"></script>
 <script src="js/diagrams.js"></script>
+<script type="module" src="js/firebase-init.js"></script>
 <script src="js/app.js"></script>
 
 </body>

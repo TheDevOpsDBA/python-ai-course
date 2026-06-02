@@ -5,6 +5,12 @@ let currentModule = 0;
 let currentSection = 0;
 let lastRenderedModule = -1;
 
+// Firebase auth state
+let currentUser = null;          // { uid, displayName, email, isGuest }
+let firebaseReady = false;
+let leaderboardUnsubscribe = null;
+let saveTimer = null;            // debounced cloud save
+
 // OpenRouter API Configuration
 // Key is injected at deploy time via GitHub Actions
 const API_KEY_INJECTED = "__GEMINI_API_KEY__";
@@ -56,6 +62,27 @@ function getProgress() {
 
 function saveProgress(progress) {
     localStorage.setItem("pythonLabProgress", JSON.stringify(progress));
+    syncProgressToCloud(progress);
+}
+
+// Debounced sync of progress to Firebase
+function syncProgressToCloud(progress) {
+    if (!currentUser || currentUser.isGuest || !window.fbHelpers) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+        const completedChallenges = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+        window.fbHelpers.saveUser(currentUser.uid, {
+            displayName: localStorage.getItem('labUserName') || currentUser.displayName || 'Student',
+            xp: progress.xp || 0,
+            level: getLevelInfo(progress.xp || 0).level,
+            badges: progress.badges || [],
+            completedSections: progress.completedSections || [],
+            completedChallenges: completedChallenges,
+            codeRuns: progress.codeRuns || 0,
+            labsCompleted: progress.labsCompleted || 0,
+            course: window.fbHelpers.COURSE_ID
+        }).catch((err) => console.warn("Cloud sync failed:", err));
+    }, 1500);
 }
 
 function addXP(amount, label) {
@@ -114,8 +141,14 @@ function updateGamificationUI() {
         nameEl.onclick = function() {
             const newName = prompt('Change your display name:', name);
             if (newName && newName.trim()) {
-                localStorage.setItem('labUserName', newName.trim());
-                nameEl.textContent = '👤 ' + newName.trim();
+                const trimmed = newName.trim();
+                localStorage.setItem('labUserName', trimmed);
+                nameEl.textContent = '👤 ' + trimmed;
+                // Sync display name to Firebase profile + DB
+                if (currentUser && !currentUser.isGuest && window.fbHelpers) {
+                    window.fbHelpers.updateName(trimmed).catch(()=>{});
+                    window.fbHelpers.saveUser(currentUser.uid, { displayName: trimmed }).catch(()=>{});
+                }
             }
         };
     }
@@ -291,16 +324,7 @@ async function initializeApp() {
     const editorEl = document.getElementById("editor");
     if (!editorEl) return; // Not on the main page
 
-    // Capture user name on first visit
-    if (!localStorage.getItem('labUserName')) {
-        const name = prompt('Welcome! Enter your name for the leaderboard:');
-        if (name && name.trim()) {
-            localStorage.setItem('labUserName', name.trim());
-        } else {
-            localStorage.setItem('labUserName', 'Student');
-        }
-    }
-
+    // Initialize editor & Pyodide first so they're ready when user logs in
     editor = CodeMirror.fromTextArea(
         editorEl,
         {
@@ -312,9 +336,185 @@ async function initializeApp() {
 
     pyodide = await loadPyodide();
 
+    // Wait for Firebase to be ready, then check auth state.
+    // If Firebase never loads (CDN blocked, etc.) fall back to local-only mode after 4s.
+    if (window.fbHelpers) {
+        bootAuth();
+    } else {
+        let booted = false;
+        const handler = () => { if (!booted) { booted = true; bootAuth(); } };
+        window.addEventListener("firebase-ready", handler, { once: true });
+        setTimeout(() => {
+            if (!booted) {
+                booted = true;
+                console.warn("Firebase did not load — running in local-only mode.");
+                hideAuthScreen();
+                if (!localStorage.getItem('labUserName')) localStorage.setItem('labUserName', 'Student');
+                currentUser = { uid: 'local-only', displayName: localStorage.getItem('labUserName'), email: '', isGuest: true };
+                startMainApp();
+            }
+        }, 4000);
+    }
+}
+
+function bootAuth() {
+    firebaseReady = true;
+    window.fbHelpers.onAuthStateChanged(async (user) => {
+        if (user) {
+            // Signed in
+            currentUser = {
+                uid: user.uid,
+                displayName: user.displayName || localStorage.getItem('labUserName') || (user.email ? user.email.split('@')[0] : 'Student'),
+                email: user.email || "",
+                isGuest: user.isAnonymous
+            };
+            localStorage.setItem('labUserName', currentUser.displayName);
+
+            // Hydrate from cloud if record exists, else create one
+            try {
+                const cloud = await window.fbHelpers.loadUser(user.uid);
+                if (cloud) {
+                    mergeCloudIntoLocal(cloud);
+                } else {
+                    await window.fbHelpers.initUser(user.uid, {
+                        email: currentUser.email,
+                        displayName: currentUser.displayName,
+                        photoURL: user.photoURL || ""
+                    });
+                }
+            } catch (e) {
+                console.warn("Auth hydrate failed:", e);
+            }
+
+            hideAuthScreen();
+            startMainApp();
+        } else {
+            // Signed out — show login (guest still allowed)
+            currentUser = null;
+            showAuthScreen();
+        }
+    });
+}
+
+// Merge cloud-stored progress into local storage so existing UI keeps working
+function mergeCloudIntoLocal(cloud) {
+    const local = getProgress();
+    const merged = {
+        ...local,
+        xp: Math.max(local.xp || 0, cloud.xp || 0),
+        badges: Array.from(new Set([...(local.badges || []), ...(cloud.badges || [])])),
+        completedSections: Array.from(new Set([...(local.completedSections || []), ...(cloud.completedSections || [])])),
+        codeRuns: Math.max(local.codeRuns || 0, cloud.codeRuns || 0),
+        labsCompleted: Math.max(local.labsCompleted || 0, cloud.labsCompleted || 0)
+    };
+    localStorage.setItem("pythonLabProgress", JSON.stringify(merged));
+
+    const localCh = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+    const cloudCh = cloud.completedChallenges || [];
+    localStorage.setItem('completedChallenges', JSON.stringify(Array.from(new Set([...localCh, ...cloudCh]))));
+
+    if (cloud.displayName) localStorage.setItem('labUserName', cloud.displayName);
+}
+
+function startMainApp() {
     loadModules();
     updateGamificationUI();
     updateProgress();
+}
+
+function showAuthScreen() {
+    const overlay = document.getElementById('authOverlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+function hideAuthScreen() {
+    const overlay = document.getElementById('authOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+// ===== Auth UI Handlers =====
+
+function authSwitchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.auth-tab[data-tab="${tab}"]`).classList.add('active');
+    const nameInput = document.getElementById('authName');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    if (tab === 'signup') {
+        nameInput.style.display = 'block';
+        submitBtn.textContent = 'Create Account';
+    } else {
+        nameInput.style.display = 'none';
+        submitBtn.textContent = 'Sign In';
+    }
+    document.getElementById('authError').textContent = '';
+}
+
+async function authSubmit() {
+    const errorEl = document.getElementById('authError');
+    errorEl.textContent = '';
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const isSignup = document.querySelector('.auth-tab.active').dataset.tab === 'signup';
+    const name = document.getElementById('authName').value.trim();
+
+    if (!email || !password) {
+        errorEl.textContent = 'Email and password are required.';
+        return;
+    }
+    if (isSignup && password.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters.';
+        return;
+    }
+
+    try {
+        if (isSignup) {
+            await window.fbHelpers.signUpEmail(email, password, name || email.split('@')[0]);
+        } else {
+            await window.fbHelpers.signInEmail(email, password);
+        }
+    } catch (err) {
+        errorEl.textContent = friendlyAuthError(err);
+    }
+}
+
+async function authSignInGoogle() {
+    try {
+        await window.fbHelpers.signInGoogle();
+    } catch (err) {
+        document.getElementById('authError').textContent = friendlyAuthError(err);
+    }
+}
+
+async function authSignInGuest() {
+    try {
+        // Try Firebase anonymous auth first; if disabled, fall back to local-only mode
+        await window.fbHelpers.signInAnonymous();
+    } catch (err) {
+        // Fallback: pure local mode (no leaderboard participation)
+        currentUser = { uid: 'guest-local', displayName: localStorage.getItem('labUserName') || 'Guest', email: '', isGuest: true };
+        if (!localStorage.getItem('labUserName')) localStorage.setItem('labUserName', 'Guest');
+        hideAuthScreen();
+        startMainApp();
+    }
+}
+
+async function authSignOut() {
+    if (!window.fbHelpers) return;
+    try {
+        await window.fbHelpers.signOut();
+    } catch (e) {}
+    location.reload();
+}
+
+function friendlyAuthError(err) {
+    const code = (err && err.code) || '';
+    if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return 'Email or password is incorrect.';
+    if (code.includes('email-already-in-use')) return 'This email is already registered. Try Sign In.';
+    if (code.includes('invalid-email')) return 'Please enter a valid email address.';
+    if (code.includes('weak-password')) return 'Password is too weak (use 6+ characters).';
+    if (code.includes('popup-closed-by-user')) return 'Google sign-in cancelled.';
+    if (code.includes('operation-not-allowed')) return 'This sign-in method is disabled. Contact your instructor.';
+    return (err && err.message) || 'Sign-in failed. Try again.';
 }
 
 function loadModules() {
@@ -806,8 +1006,10 @@ function updateProgress() {
     const totalSections = courseData.modules.reduce((a, m) => a + m.sections.length, 0);
     const completed = JSON.parse(localStorage.getItem('completedSections') || '[]');
     const pct = Math.round((completed.length / totalSections) * 100);
-    document.getElementById('progressBar').style.setProperty('--progress', pct + '%');
-    document.getElementById('progressText').textContent = pct + '%';
+    const bar = document.getElementById('progressBar');
+    const text = document.getElementById('progressText');
+    if (bar) bar.style.setProperty('--progress', pct + '%');
+    if (text) text.textContent = pct + '%';
 }
 
 function markSectionComplete() {
@@ -993,7 +1195,7 @@ VERDICT: PASS or NEEDS_WORK
     callAIForLab(evalPrompt, feedback);
 }
 
-async function callAIForLab(prompt, feedbackEl) {
+async function callAIForLab(prompt, feedbackEl, onResult) {
     if (!OPENROUTER_API_KEY) {
         const key = window.prompt("Enter the AI API key (provided by your instructor):");
         if (key && key.trim()) {
@@ -1001,6 +1203,7 @@ async function callAIForLab(prompt, feedbackEl) {
             localStorage.setItem("openrouter_api_key", OPENROUTER_API_KEY);
         } else {
             feedbackEl.innerHTML = "No API key. Ask your instructor.";
+            if (onResult) onResult(false);
             return;
         }
     }
@@ -1026,17 +1229,19 @@ async function callAIForLab(prompt, feedbackEl) {
             const data = await response.json();
             if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
                 let answer = data.choices[0].message.content;
-                const isPass = answer.includes("VERDICT: PASS");
+                const isPass = /VERDICT:\s*PASS\b/i.test(answer);
                 feedbackEl.className = 'lab-feedback ' + (isPass ? 'pass' : 'needs-work');
-                answer = answer.replace(/VERDICT: (PASS|NEEDS_WORK)/g, isPass ? '✅ PASS — Well done!' : '🔄 NEEDS WORK — Keep trying!');
+                answer = answer.replace(/VERDICT:\s*(PASS|NEEDS_WORK)/gi, isPass ? '✅ PASS — Well done!' : '🔄 NEEDS WORK — Keep trying!');
                 answer = answer.replace(/\n/g, '<br>');
                 feedbackEl.innerHTML = answer;
                 if (isPass) { trackLabComplete(); addXP(25, "Lab passed"); }
+                if (onResult) onResult(isPass);
                 return;
             }
         } catch (e) { continue; }
     }
     feedbackEl.innerHTML = "AI is busy. Try again in a moment.";
+    if (onResult) onResult(false);
 }
 
 function showHint() {
@@ -1240,20 +1445,34 @@ VERDICT: PASS or NEEDS_WORK
 💡 One tip
 🎉 Encouragement`;
 
-    callAIForLab(evalPrompt, feedback);
-    
-    // Track completion after delay
-    setTimeout(() => {
-        if (feedback.classList.contains('pass')) {
-            const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
-            if (!completed.includes(currentChallenge.id)) {
-                completed.push(currentChallenge.id);
-                localStorage.setItem('completedChallenges', JSON.stringify(completed));
-                addXP(30, 'Challenge completed');
-                showToast('🏆 Challenge completed! +30 XP');
-            }
-        }
-    }, 6000);
+    // Pass a callback so we can mark the challenge complete the moment AI says PASS,
+    // instead of racing against a setTimeout.
+    const challengeId = currentChallenge.id;
+    callAIForLab(evalPrompt, feedback, (passed) => {
+        if (passed) markChallengeComplete(challengeId);
+    });
+}
+
+function markChallengeComplete(challengeId) {
+    const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+    if (completed.includes(challengeId)) return;
+    completed.push(challengeId);
+    localStorage.setItem('completedChallenges', JSON.stringify(completed));
+    addXP(30, 'Challenge completed');
+    showToast('🏆 Challenge completed! +30 XP');
+
+    const progressLabel = document.getElementById('challengeProgress');
+    if (progressLabel) progressLabel.textContent = completed.length + '/' + CHALLENGES.length + ' completed';
+
+    // Push to cloud immediately (skip debounce)
+    if (currentUser && !currentUser.isGuest && window.fbHelpers) {
+        const progress = getProgress();
+        window.fbHelpers.saveUser(currentUser.uid, {
+            xp: progress.xp,
+            completedChallenges: completed,
+            level: getLevelInfo(progress.xp).level
+        }).catch(() => {});
+    }
 }
 
 function showChallengeHint() {
@@ -1280,6 +1499,82 @@ function showChallengeSolution() {
 }
 
 // ===== END CHALLENGE MODE =====
+
+// ===== LEADERBOARD =====
+
+function openLeaderboard() {
+    const overlay = document.getElementById('leaderboardOverlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    renderLeaderboard();
+
+    if (window.fbHelpers) {
+        // Tear down any old subscription before creating a new one
+        if (leaderboardUnsubscribe) { try { leaderboardUnsubscribe(); } catch(e){} }
+        leaderboardUnsubscribe = window.fbHelpers.subscribeLeaderboard(50, (users) => {
+            renderLeaderboardList(users);
+        });
+    } else {
+        document.getElementById('leaderboardList').innerHTML =
+            '<div class="leaderboard-empty">Leaderboard requires sign-in. Please sign in to participate.</div>';
+    }
+}
+
+function closeLeaderboard() {
+    const overlay = document.getElementById('leaderboardOverlay');
+    if (overlay) overlay.style.display = 'none';
+    if (leaderboardUnsubscribe) {
+        try { leaderboardUnsubscribe(); } catch(e){}
+        leaderboardUnsubscribe = null;
+    }
+}
+
+function renderLeaderboard() {
+    document.getElementById('leaderboardList').innerHTML = '<div class="leaderboard-loading">Loading…</div>';
+    document.getElementById('leaderboardFooter').textContent = '';
+}
+
+function renderLeaderboardList(users) {
+    const list = document.getElementById('leaderboardList');
+    const footer = document.getElementById('leaderboardFooter');
+
+    if (!users || users.length === 0) {
+        list.innerHTML = '<div class="leaderboard-empty">No participants yet — be the first!</div>';
+        return;
+    }
+
+    // Filter to this course only (in case other courses share the DB)
+    const courseUsers = users.filter(u => !u.course || u.course === window.fbHelpers.COURSE_ID);
+
+    let html = '<div class="leaderboard-row leaderboard-head"><span>#</span><span>Learner</span><span>Level</span><span>XP</span><span>Badges</span></div>';
+    courseUsers.forEach((u, i) => {
+        const rank = i + 1;
+        const isMe = currentUser && u.uid === currentUser.uid;
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+        const name = (u.displayName || 'Anonymous').replace(/[<>]/g, '');
+        html += `<div class="leaderboard-row${isMe ? ' me' : ''}">
+            <span class="lb-rank">${medal}</span>
+            <span class="lb-name">${name}${isMe ? ' <em>(you)</em>' : ''}</span>
+            <span class="lb-level">Lv.${u.level || 1}</span>
+            <span class="lb-xp">${u.xp || 0} XP</span>
+            <span class="lb-badges">🏅 ${(u.badges || []).length}</span>
+        </div>`;
+    });
+
+    list.innerHTML = html;
+
+    // Show user's rank in footer
+    if (currentUser) {
+        const myIndex = courseUsers.findIndex(u => u.uid === currentUser.uid);
+        if (myIndex >= 0) {
+            footer.textContent = `You are ranked #${myIndex + 1} of ${courseUsers.length}`;
+        } else {
+            footer.textContent = `${courseUsers.length} learners on the board`;
+        }
+    }
+}
+
+// ===== END LEADERBOARD =====
 
 // ===== Keyboard Navigation =====
 // Right arrow reveals/advances, left arrow goes back
