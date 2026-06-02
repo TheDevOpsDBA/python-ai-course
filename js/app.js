@@ -1,5 +1,4 @@
-﻿
-let editor;
+﻿let editor;
 let pyodide;
 
 let currentModule = 0;
@@ -27,6 +26,7 @@ async function initializeApp() {
     pyodide = await loadPyodide();
 
     loadModules();
+    updateProgress();
 }
 
 function loadModules() {
@@ -65,12 +65,15 @@ function loadSections() {
     const sections =
         courseData.modules[currentModule].sections;
 
+    const completed = JSON.parse(localStorage.getItem('completedSections') || '[]');
+
     sections.forEach((section, index) => {
 
         const option = document.createElement("option");
 
         option.value = index;
-        option.textContent = section.title;
+        const mark = completed.includes(section.id) ? '✓ ' : '○ ';
+        option.textContent = mark + section.title;
 
         sectionSelect.appendChild(option);
     });
@@ -125,6 +128,31 @@ function renderSection() {
 
         editor.setValue("# No examples available");
     }
+
+    // Update breadcrumb
+    document.getElementById('breadcrumb').textContent =
+        courseData.modules[currentModule].title + ' > ' + section.title;
+
+    // Update section indicator
+    const totalInModule = courseData.modules[currentModule].sections.length;
+    document.getElementById('sectionIndicator').textContent =
+        (currentSection + 1) + ' / ' + totalInModule;
+
+    // Update file badge
+    if (section.examples && section.examples.length > 0) {
+        document.getElementById('fileBadge').textContent = '📄 ' + section.examples[0].name + '.py';
+    } else {
+        document.getElementById('fileBadge').textContent = '📄 scratch.py';
+    }
+
+    // Update line count
+    setTimeout(() => {
+        if (editor) document.getElementById('lineCount').textContent = 'Lines: ' + editor.lineCount();
+    }, 100);
+
+    // Mark previous section complete
+    markSectionComplete();
+    updateProgress();
 }
 
 function renderTabs(section, activeIndex) {
@@ -144,7 +172,7 @@ function renderTabs(section, activeIndex) {
     const scratchButton =
         document.createElement("button");
 
-    scratchButton.innerText = "âœ Scratch Pad";
+    scratchButton.innerText = "✏ Scratch Pad";
     scratchButton.className = "example-btn";
 
     scratchButton.onclick = () => {
@@ -242,7 +270,7 @@ async function runSelected() {
     const selected = editor.getSelection();
 
     if (!selected.trim()) {
-        output.textContent = "âš  No code selected. Highlight lines to run them.";
+        output.textContent = "⚠ No code selected. Highlight lines to run them.";
         return;
     }
 
@@ -353,6 +381,8 @@ function nextSection() {
         currentModule++;
         currentSection = 0;
 
+        showToast('🎉 Module Complete!');
+
         loadSections();
 
         return;
@@ -367,16 +397,85 @@ function toggleDescription() {
         .classList.toggle("fullscreen");
 }
 
-window.onload = initializeApp;
+// ===== Panel Tab Switching =====
+
+function showPanelTab(tab) {
+    document.querySelectorAll('.panel-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.panel-tab').forEach(el => el.classList.remove('active'));
+
+    if (tab === 'editor') {
+        document.getElementById('panelEditor').classList.remove('hidden');
+        document.querySelectorAll('.panel-tab')[0].classList.add('active');
+        setTimeout(() => { if (editor) editor.refresh(); }, 50);
+    } else if (tab === 'output') {
+        document.getElementById('panelOutput').classList.remove('hidden');
+        document.querySelectorAll('.panel-tab')[1].classList.add('active');
+    } else if (tab === 'chat') {
+        document.getElementById('panelChat').classList.remove('hidden');
+        document.querySelectorAll('.panel-tab')[2].classList.add('active');
+    }
+}
+
+// ===== Quick AI Actions =====
+
+function quickAsk(question) {
+    document.getElementById('chatInput').value = question;
+    sendChat();
+}
+
+// ===== Toast Notification =====
+
+function showToast(message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ===== Progress Tracking =====
+
+function updateProgress() {
+    const totalSections = courseData.modules.reduce((a, m) => a + m.sections.length, 0);
+    const completed = JSON.parse(localStorage.getItem('completedSections') || '[]');
+    const pct = Math.round((completed.length / totalSections) * 100);
+    document.getElementById('progressBar').style.setProperty('--progress', pct + '%');
+    document.getElementById('progressText').textContent = pct + '%';
+}
+
+function markSectionComplete() {
+    const section = courseData.modules[currentModule].sections[currentSection];
+    const completed = JSON.parse(localStorage.getItem('completedSections') || '[]');
+    if (!completed.includes(section.id)) {
+        completed.push(section.id);
+        localStorage.setItem('completedSections', JSON.stringify(completed));
+    }
+    updateProgress();
+}
+
+// ===== Right Panel Toggle =====
+
+function toggleRightPanel() {
+    var panel = document.getElementById('rightPanel');
+    var toggle = document.getElementById('panelToggle');
+    var left = document.getElementById('leftPanel');
+
+    panel.classList.toggle('open');
+    toggle.classList.toggle('shifted');
+    left.classList.toggle('shifted');
+
+    if (panel.classList.contains('open')) {
+        toggle.innerHTML = '&#x25B6; Close';
+    } else {
+        toggle.innerHTML = '&#x25C0; Code &amp; AI';
+    }
+
+    // Refresh CodeMirror after transition
+    setTimeout(function() { if (editor) editor.refresh(); }, 350);
+}
 
 // ===== AI Chat Functions =====
-
-function toggleChat() {
-    const body = document.getElementById("chatBody");
-    body.classList.toggle("open");
-    const btn = document.querySelector(".chat-toggle");
-    btn.textContent = body.classList.contains("open") ? "â–²" : "â–¼";
-}
 
 function addChatMessage(text, role) {
     const messages = document.getElementById("chatMessages");
@@ -480,25 +579,8 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
     addChatMessage(`All models busy. Please try again in a moment. (${lastError})`, "bot");
 }
 
-function toggleRightPanel() {
-    var panel = document.getElementById('rightPanel');
-    var toggle = document.getElementById('panelToggle');
-    var left = document.getElementById('leftPanel');
-    
-    panel.classList.toggle('open');
-    toggle.classList.toggle('shifted');
-    left.classList.toggle('shifted');
-    
-    if (panel.classList.contains('open')) {
-        toggle.innerHTML = '&#x25B6; Close';
-    } else {
-        toggle.innerHTML = '&#x25C0; Code &amp; AI';
-    }
-    
-    // Refresh CodeMirror after transition
-    setTimeout(function() { if (editor) editor.refresh(); }, 350);
-}
-// Keyboard navigation â€” right arrow reveals/advances, left arrow goes back
+// ===== Keyboard Navigation =====
+// Right arrow reveals/advances, left arrow goes back
 document.addEventListener("keydown", function(e) {
     // Don't intercept if user is typing in editor, textarea, or chat input
     if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
@@ -514,4 +596,4 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
-
+window.onload = initializeApp;
