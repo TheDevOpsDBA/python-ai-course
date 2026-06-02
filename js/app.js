@@ -44,7 +44,8 @@ function getProgress() {
     const defaults = {
         xp: 0, level: 1, streak: { current: 0, lastDate: "", best: 0 },
         completedSections: [], completedModules: [], codeRuns: 0,
-        labsCompleted: 0, aiQuestions: 0, badges: [], firstVisit: new Date().toISOString().split('T')[0]
+        labsCompleted: 0, aiQuestions: 0, badges: [], firstVisit: new Date().toISOString().split('T')[0],
+        "userName": localStorage.getItem('labUserName') || "Student"
     };
     try {
         const saved = localStorage.getItem("pythonLabProgress");
@@ -104,6 +105,20 @@ function updateGamificationUI() {
     // Streak
     updateStreak();
     document.getElementById("streakDisplay").textContent = "🔥" + progress.streak.current;
+
+    // Show user name
+    const nameEl = document.getElementById('userName');
+    if (nameEl) {
+        const name = localStorage.getItem('labUserName') || 'Student';
+        nameEl.textContent = '👤 ' + name;
+        nameEl.onclick = function() {
+            const newName = prompt('Change your display name:', name);
+            if (newName && newName.trim()) {
+                localStorage.setItem('labUserName', newName.trim());
+                nameEl.textContent = '👤 ' + newName.trim();
+            }
+        };
+    }
 }
 
 function updateStreak() {
@@ -275,6 +290,16 @@ async function initializeApp() {
 
     const editorEl = document.getElementById("editor");
     if (!editorEl) return; // Not on the main page
+
+    // Capture user name on first visit
+    if (!localStorage.getItem('labUserName')) {
+        const name = prompt('Welcome! Enter your name for the leaderboard:');
+        if (name && name.trim()) {
+            localStorage.setItem('labUserName', name.trim());
+        } else {
+            localStorage.setItem('labUserName', 'Student');
+        }
+    }
 
     editor = CodeMirror.fromTextArea(
         editorEl,
@@ -1163,48 +1188,61 @@ function startChallenge(index) {
     document.getElementById('challengeTitle').textContent = currentChallenge.title;
     document.getElementById('challengeTask').textContent = currentChallenge.task;
     document.getElementById('challengeFeedback').style.display = 'none';
+    document.getElementById('challengeOutput').style.display = 'none';
     
-    // Set starter code in editor
-    if (editor) {
-        editor.setValue('# Challenge: ' + currentChallenge.title + '\n# Write your solution below\n\n');
-    }
-    
-    // Open right panel if closed
-    const panel = document.getElementById('rightPanel');
-    if (!panel.classList.contains('open')) toggleRightPanel();
+    // Set starter code in the embedded editor
+    document.getElementById('challengeEditor').value = '# Challenge: ' + currentChallenge.title + '\n# Write your solution below\n\n';
 }
 
-function submitChallenge() {
+async function runAndSubmitChallenge() {
     if (!currentChallenge) return;
     
-    const code = editor ? editor.getValue() : '';
+    const code = document.getElementById('challengeEditor').value;
+    const outputEl = document.getElementById('challengeOutput');
+    const outputText = document.getElementById('challengeOutputText');
     const feedback = document.getElementById('challengeFeedback');
+    
+    // Run the code first
+    outputEl.style.display = 'block';
+    outputText.textContent = 'Running...\n';
+    
+    try {
+        let output = '';
+        pyodide.setStdout({ batched: (msg) => { output += msg + '\n'; } });
+        await pyodide.runPythonAsync(code);
+        outputText.textContent = output || '(no output)';
+    } catch (error) {
+        outputText.textContent = '❌ Error:\n' + error.message;
+    }
+    
+    // Now evaluate with AI
     feedback.style.display = 'block';
     feedback.className = 'challenge-feedback';
-    feedback.innerHTML = '<span class="typing-dots"><span>●</span><span>●</span><span>●</span></span> Evaluating...';
+    feedback.innerHTML = '<span class="typing-dots"><span>●</span><span>●</span><span>●</span></span> AI is evaluating...';
     
-    const prompt = `You are evaluating a beginner Python student's code for a simple challenge.
+    const evalPrompt = `You are evaluating a beginner Python student's code.
 
 CHALLENGE: ${currentChallenge.title}
 TASK: ${currentChallenge.task}
 REQUIREMENTS: ${currentChallenge.requirements.join(', ')}
 
-STUDENT CODE:
+CODE:
 \`\`\`python
 ${code}
 \`\`\`
 
-Be very encouraging and beginner-friendly. Evaluate and respond:
+OUTPUT: ${outputText.textContent}
+
+Be very encouraging. Respond:
 VERDICT: PASS or NEEDS_WORK
-✓ What they did right
+✓ What's correct
 ✗ What's missing (only if NEEDS_WORK)
-💡 One helpful tip
+💡 One tip
 🎉 Encouragement`;
 
-    callAIForLab(prompt, feedback);
+    callAIForLab(evalPrompt, feedback);
     
-    // Mark as completed if AI says PASS (handled in callAIForLab via trackLabComplete)
-    // Also mark in challenge progress
+    // Track completion after delay
     setTimeout(() => {
         if (feedback.classList.contains('pass')) {
             const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
@@ -1215,7 +1253,7 @@ VERDICT: PASS or NEEDS_WORK
                 showToast('🏆 Challenge completed! +30 XP');
             }
         }
-    }, 5000);
+    }, 6000);
 }
 
 function showChallengeHint() {
@@ -1234,13 +1272,11 @@ function showChallengeHint() {
 
 function showChallengeSolution() {
     if (!currentChallenge) return;
+    document.getElementById('challengeEditor').value = currentChallenge.solution;
     const feedback = document.getElementById('challengeFeedback');
     feedback.style.display = 'block';
     feedback.className = 'challenge-feedback';
-    feedback.innerHTML = '👁 <strong>Solution:</strong><br><pre style="background:#0a0f1a;padding:10px;border-radius:6px;margin-top:8px;color:#00d4aa;font-size:12px;white-space:pre-wrap;border:1px solid #1e293b;">' + currentChallenge.solution + '</pre>';
-    
-    // Also put it in the editor
-    if (editor) editor.setValue(currentChallenge.solution);
+    feedback.innerHTML = '👁 Solution loaded into the editor above. Click "▶ Run & Submit" to see it work!';
 }
 
 // ===== END CHALLENGE MODE =====
