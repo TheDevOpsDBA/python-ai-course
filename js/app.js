@@ -738,6 +738,25 @@ function showPanelTab(tab) {
     }
 }
 
+// ===== Markdown Formatting =====
+
+function formatMarkdown(text) {
+    // Handle code blocks (```) first
+    text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, function(match, lang, code) {
+        return '<pre>' + code.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+    });
+    // Handle inline code
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Handle bold
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Handle italic
+    text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    // Handle line breaks
+    text = text.replace(/\n\n/g, '<br><br>');
+    text = text.replace(/\n/g, '<br>');
+    return text;
+}
+
 // ===== Quick AI Actions =====
 
 function quickAsk(question) {
@@ -809,7 +828,7 @@ function addChatMessage(text, role) {
     
     const avatar = document.createElement("div");
     avatar.className = "ai-msg-avatar";
-    avatar.textContent = isUser ? "👤" : "⚡";
+    avatar.textContent = isUser ? "👤" : "🤖";
     
     const bubble = document.createElement("div");
     bubble.className = "ai-msg-bubble";
@@ -892,12 +911,7 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
                 let answer = data.choices[0].message.content || "";
                 if (answer.trim()) {
                     loadingMsg.remove();
-                    answer = answer
-                        .replace(/\n\n/g, "<br><br>")
-                        .replace(/\n/g, "<br>")
-                        .replace(/`([^`]+)`/g, "<code>$1</code>")
-                        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-                        .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+                    answer = formatMarkdown(answer);
                     addChatMessage(answer, "bot");
                     trackAIQuestion();
                     return;
