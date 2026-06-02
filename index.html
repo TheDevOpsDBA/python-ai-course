@@ -21,9 +21,14 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
         <img src="images/Powershell Academy Logo 300-300.png" alt="PowerShell Academy" class="nav-logo">
     </a>
     <div class="breadcrumb" id="breadcrumb">Module 1 > Section 1</div>
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-        <span class="progress-text" id="progressText">0%</span>
+    <div class="gamification-bar">
+        <span class="xp-level" id="xpLevel" title="Your Level">Lv.1</span>
+        <div class="xp-bar-container">
+            <div class="xp-bar" id="xpBar"></div>
+        </div>
+        <span class="xp-text" id="xpText">0 XP</span>
+        <span class="streak-display" id="streakDisplay" title="Daily Streak">🔥0</span>
+        <button class="badge-btn" onclick="showBadges()" title="View Badges">🏅</button>
     </div>
 </nav>
 
@@ -139,6 +144,38 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 </div>
 
 <div id="toastContainer" class="toast-container"></div>
+
+<!-- Badge unlock popup -->
+<div class="badge-popup" id="badgePopup" style="display:none;">
+    <div class="badge-popup-content">
+        <div class="badge-popup-icon" id="badgePopupIcon"></div>
+        <div class="badge-popup-info">
+            <div class="badge-popup-label">BADGE UNLOCKED!</div>
+            <div class="badge-popup-title" id="badgePopupTitle"></div>
+            <div class="badge-popup-xp" id="badgePopupXp"></div>
+        </div>
+    </div>
+</div>
+
+<!-- XP gain floating text -->
+<div class="xp-float" id="xpFloat" style="display:none;">+10 XP</div>
+
+<!-- Level up banner -->
+<div class="levelup-banner" id="levelupBanner" style="display:none;">
+    <span class="levelup-text" id="levelupText">⬆️ Level Up!</span>
+</div>
+
+<!-- Badge gallery modal -->
+<div class="badge-gallery-overlay" id="badgeGallery" style="display:none;" onclick="if(event.target===this)closeBadges()">
+    <div class="badge-gallery">
+        <div class="badge-gallery-header">
+            <h3>🏅 Achievement Badges</h3>
+            <span class="badge-gallery-stats" id="badgeStats">0/12 Unlocked</span>
+        </div>
+        <div class="badge-grid" id="badgeGrid"></div>
+        <button class="badge-gallery-close" onclick="closeBadges()">Close</button>
+    </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>

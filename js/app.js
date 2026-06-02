@@ -10,6 +10,259 @@ let lastRenderedModule = -1;
 const API_KEY_INJECTED = "__GEMINI_API_KEY__";
 let OPENROUTER_API_KEY = API_KEY_INJECTED.startsWith("__") ? localStorage.getItem("openrouter_api_key") || "" : API_KEY_INJECTED;
 
+// ===== GAMIFICATION SYSTEM =====
+
+const LEVELS = [
+    { level: 1, xp: 0, title: "Beginner" },
+    { level: 2, xp: 50, title: "Explorer" },
+    { level: 3, xp: 150, title: "Practitioner" },
+    { level: 4, xp: 300, title: "Builder" },
+    { level: 5, xp: 500, title: "Automator" },
+    { level: 6, xp: 750, title: "Engineer" },
+    { level: 7, xp: 1000, title: "Architect" },
+    { level: 8, xp: 1500, title: "Expert" },
+    { level: 9, xp: 2000, title: "Master" },
+    { level: 10, xp: 3000, title: "Python Sage" }
+];
+
+const BADGES = [
+    { id: "first-steps", name: "First Steps", icon: "👣", desc: "Complete your first section" },
+    { id: "first-run", name: "First Run", icon: "▶️", desc: "Run code for the first time" },
+    { id: "python-beginner", name: "Python Beginner", icon: "🐍", desc: "Complete Python Basics module" },
+    { id: "collection-master", name: "Collection Master", icon: "📦", desc: "Complete Collections module" },
+    { id: "flow-controller", name: "Flow Controller", icon: "🔀", desc: "Complete Control Flow module" },
+    { id: "function-builder", name: "Function Builder", icon: "⚙️", desc: "Complete Functions module" },
+    { id: "error-handler", name: "Error Handler", icon: "🛡️", desc: "Complete Error Handling module" },
+    { id: "ai-explorer", name: "AI Explorer", icon: "🤖", desc: "Complete AI & ML module" },
+    { id: "lab-rat", name: "Lab Rat", icon: "🧪", desc: "Complete 5 lab challenges" },
+    { id: "streak-hero", name: "Streak Hero", icon: "🔥", desc: "Maintain a 7-day streak" },
+    { id: "code-runner", name: "Code Runner", icon: "🏃", desc: "Run code 50 times" },
+    { id: "champion", name: "Course Champion", icon: "🏆", desc: "Complete all modules" }
+];
+
+function getProgress() {
+    const defaults = {
+        xp: 0, level: 1, streak: { current: 0, lastDate: "", best: 0 },
+        completedSections: [], completedModules: [], codeRuns: 0,
+        labsCompleted: 0, aiQuestions: 0, badges: [], firstVisit: new Date().toISOString().split('T')[0]
+    };
+    try {
+        const saved = localStorage.getItem("pythonLabProgress");
+        if (saved) return { ...defaults, ...JSON.parse(saved) };
+    } catch (e) {}
+    return defaults;
+}
+
+function saveProgress(progress) {
+    localStorage.setItem("pythonLabProgress", JSON.stringify(progress));
+}
+
+function addXP(amount, label) {
+    const progress = getProgress();
+    const oldLevel = getLevelInfo(progress.xp).level;
+    progress.xp += amount;
+    const newLevelInfo = getLevelInfo(progress.xp);
+    saveProgress(progress);
+    updateGamificationUI();
+    showXPFloat("+" + amount + " XP");
+    if (newLevelInfo.level > oldLevel) {
+        showLevelUp(newLevelInfo);
+    }
+}
+
+function getLevelInfo(xp) {
+    let current = LEVELS[0];
+    for (const lvl of LEVELS) {
+        if (xp >= lvl.xp) current = lvl;
+        else break;
+    }
+    return current;
+}
+
+function getNextLevel(xp) {
+    for (const lvl of LEVELS) {
+        if (xp < lvl.xp) return lvl;
+    }
+    return LEVELS[LEVELS.length - 1];
+}
+
+function updateGamificationUI() {
+    const progress = getProgress();
+    const currentLvl = getLevelInfo(progress.xp);
+    const nextLvl = getNextLevel(progress.xp);
+
+    document.getElementById("xpLevel").textContent = "Lv." + currentLvl.level;
+    document.getElementById("xpLevel").title = currentLvl.title;
+    document.getElementById("xpText").textContent = progress.xp + " XP";
+
+    // XP bar progress within current level
+    const xpInLevel = progress.xp - currentLvl.xp;
+    const xpNeeded = nextLvl.xp - currentLvl.xp;
+    const pct = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
+    document.getElementById("xpBar").style.width = pct + "%";
+
+    // Streak
+    updateStreak();
+    document.getElementById("streakDisplay").textContent = "🔥" + progress.streak.current;
+}
+
+function updateStreak() {
+    const progress = getProgress();
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    if (progress.streak.lastDate === today) return; // Already counted today
+
+    if (progress.streak.lastDate === yesterday) {
+        progress.streak.current += 1;
+    } else if (progress.streak.lastDate !== today) {
+        progress.streak.current = 1;
+    }
+
+    progress.streak.lastDate = today;
+    if (progress.streak.current > progress.streak.best) {
+        progress.streak.best = progress.streak.current;
+    }
+    saveProgress(progress);
+
+    // Check streak badge
+    if (progress.streak.current >= 7) awardBadge("streak-hero");
+}
+
+function awardBadge(badgeId) {
+    const progress = getProgress();
+    if (progress.badges.includes(badgeId)) return; // Already earned
+
+    progress.badges.push(badgeId);
+    saveProgress(progress);
+
+    const badge = BADGES.find(b => b.id === badgeId);
+    if (badge) showBadgePopup(badge);
+
+    addXP(50, "Badge: " + badge.name);
+}
+
+function showBadgePopup(badge) {
+    const popup = document.getElementById("badgePopup");
+    document.getElementById("badgePopupIcon").textContent = badge.icon;
+    document.getElementById("badgePopupTitle").textContent = badge.name;
+    document.getElementById("badgePopupXp").textContent = "+50 XP";
+    popup.style.display = "block";
+    setTimeout(() => { popup.style.display = "none"; }, 4000);
+}
+
+function showXPFloat(text) {
+    const el = document.getElementById("xpFloat");
+    el.textContent = text;
+    el.style.display = "block";
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "xpFloatUp 1.2s ease forwards";
+    setTimeout(() => { el.style.display = "none"; }, 1300);
+}
+
+function showLevelUp(levelInfo) {
+    const banner = document.getElementById("levelupBanner");
+    document.getElementById("levelupText").textContent = "⬆️ Level " + levelInfo.level + " — " + levelInfo.title + "!";
+    banner.style.display = "block";
+    banner.style.animation = "none";
+    void banner.offsetWidth;
+    banner.style.animation = "levelBannerIn 0.4s ease, levelBannerOut 0.4s 3s forwards";
+    setTimeout(() => { banner.style.display = "none"; }, 3500);
+}
+
+function showBadges() {
+    const progress = getProgress();
+    const grid = document.getElementById("badgeGrid");
+    grid.innerHTML = "";
+
+    BADGES.forEach(badge => {
+        const earned = progress.badges.includes(badge.id);
+        const item = document.createElement("div");
+        item.className = "badge-item" + (earned ? " earned" : " locked");
+        item.innerHTML = '<span class="badge-icon">' + badge.icon + '</span><span class="badge-name">' + (earned ? badge.name : "???") + '</span>';
+        item.title = earned ? badge.desc : "Locked";
+        grid.appendChild(item);
+    });
+
+    document.getElementById("badgeStats").textContent = progress.badges.length + "/12 Unlocked";
+    document.getElementById("badgeGallery").style.display = "flex";
+}
+
+function closeBadges() {
+    document.getElementById("badgeGallery").style.display = "none";
+}
+
+function checkModuleBadges() {
+    const progress = getProgress();
+    const moduleMap = {
+        2: "python-beginner",    // Module index 2 = Python Basics
+        3: "collection-master",  // Module index 3 = Collections
+        5: "flow-controller",    // Module index 5 = Control Flow
+        6: "function-builder",   // Module index 6 = Functions
+        7: "error-handler",      // Module index 7 = Error Handling
+        12: "ai-explorer"        // Module index 12 = AI & ML
+    };
+
+    // Check if all sections in completed modules
+    for (const [modIdx, badgeId] of Object.entries(moduleMap)) {
+        const mod = courseData.modules[parseInt(modIdx)];
+        if (!mod) continue;
+        const allDone = mod.sections.every(s => progress.completedSections.includes(s.id));
+        if (allDone) awardBadge(badgeId);
+    }
+
+    // Check champion
+    const totalSections = courseData.modules.reduce((a, m) => a + m.sections.length, 0);
+    if (progress.completedSections.length >= totalSections) awardBadge("champion");
+
+    // Check lab rat
+    if (progress.labsCompleted >= 5) awardBadge("lab-rat");
+
+    // Check code runner
+    if (progress.codeRuns >= 50) awardBadge("code-runner");
+}
+
+function trackCodeRun() {
+    const progress = getProgress();
+    progress.codeRuns += 1;
+    saveProgress(progress);
+
+    if (progress.codeRuns === 1) awardBadge("first-run");
+    checkModuleBadges();
+    addXP(10, "Run code");
+}
+
+function trackSectionComplete() {
+    const progress = getProgress();
+    const section = courseData.modules[currentModule].sections[currentSection];
+    if (!progress.completedSections.includes(section.id)) {
+        progress.completedSections.push(section.id);
+        saveProgress(progress);
+
+        if (progress.completedSections.length === 1) awardBadge("first-steps");
+        checkModuleBadges();
+        addXP(5, "Section viewed");
+    }
+}
+
+function trackLabComplete() {
+    const progress = getProgress();
+    progress.labsCompleted += 1;
+    saveProgress(progress);
+    checkModuleBadges();
+    addXP(25, "Lab completed");
+}
+
+function trackAIQuestion() {
+    const progress = getProgress();
+    progress.aiQuestions += 1;
+    saveProgress(progress);
+    addXP(5, "AI question");
+}
+
+// ===== END GAMIFICATION SYSTEM =====
+
 async function initializeApp() {
 
     const editorEl = document.getElementById("editor");
@@ -27,6 +280,7 @@ async function initializeApp() {
     pyodide = await loadPyodide();
 
     loadModules();
+    updateGamificationUI();
     updateProgress();
 }
 
@@ -194,6 +448,7 @@ function renderSection() {
     // Mark previous section complete
     markSectionComplete();
     updateProgress();
+    trackSectionComplete();
 }
 
 function renderTabs(section, activeIndex) {
@@ -297,6 +552,8 @@ async function runCode() {
             editor.getValue()
         );
 
+        trackCodeRun();
+
     } catch (error) {
 
         output.textContent = error;
@@ -328,6 +585,8 @@ async function runSelected() {
         });
 
         await pyodide.runPythonAsync(selected);
+
+        trackCodeRun();
 
     } catch (error) {
 
@@ -436,6 +695,7 @@ function nextSection() {
         currentSection = 0;
 
         showToast('🎉 Module Complete!');
+        addXP(50, "Module complete");
 
         loadSections();
 
@@ -620,6 +880,7 @@ Give a clear, helpful answer. If the question is about the code, refer to specif
                         .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
                         .replace(/\*([^*]+)\*/g, "<em>$1</em>");
                     addChatMessage(answer, "bot");
+                    trackAIQuestion();
                     return;
                 }
             }
@@ -651,6 +912,7 @@ function evaluateLab() {
 
     document.getElementById('chatInput').value = evalPrompt;
     sendChat();
+    trackLabComplete();
 }
 
 // ===== Keyboard Navigation =====
