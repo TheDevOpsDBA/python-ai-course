@@ -71,33 +71,40 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
             <div id="exampleTabs"></div>
             <textarea id="editor"></textarea>
             <div class="action-row">
-                <button onclick="runCode()">▶ Run All</button>
-                <button onclick="runSelected()">▶ Run Selected</button>
+                <button onclick="runCode()">▶ Run</button>
+                <button onclick="runSelected()">▶ Selected</button>
+                <button onclick="copyCode()">📋 Copy</button>
                 <button onclick="clearOutput()">🧹 Clear</button>
             </div>
-            <pre id="output"></pre>
+            <details class="collapsible-section" open>
+                <summary>📊 Output</summary>
+                <pre id="output"></pre>
+            </details>
 
-            <div class="ai-section">
-                <div class="ai-header">
-                    <span>⚡ Lab Assistant</span>
-                    <span class="ai-context">Context: 📄 Script | 📊 Output | 📖 Section</span>
+            <details class="collapsible-section">
+                <summary>⚡ Lab Assistant</summary>
+                <div class="ai-section-inner">
+                    <div class="ai-header">
+                        <span>⚡ Lab Assistant</span>
+                        <span class="ai-context">Context: 📄 Script | 📊 Output | 📖 Section</span>
+                    </div>
+                    <div class="ai-quick-actions">
+                        <button onclick="quickAsk('Explain this code line by line')">Explain Code</button>
+                        <button onclick="quickAsk('I got an error, help me fix it')">Fix Error</button>
+                        <button onclick="quickAsk('What should I learn next?')">What Next?</button>
+                    </div>
+                    <div class="chat-disclaimer">
+                        🤖 AI assistant for course-related questions only. Service may be discontinued at any time without notice.
+                    </div>
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="chat-msg bot">Hi! I can explain the Python code. Try the quick actions above or ask anything.</div>
+                    </div>
+                    <div class="chat-input-row">
+                        <input type="text" id="chatInput" placeholder="Ask about this code..." onkeydown="if(event.key==='Enter')sendChat()">
+                        <button onclick="sendChat()">Send</button>
+                    </div>
                 </div>
-                <div class="ai-quick-actions">
-                    <button onclick="quickAsk('Explain this code line by line')">Explain Code</button>
-                    <button onclick="quickAsk('I got an error, help me fix it')">Fix Error</button>
-                    <button onclick="quickAsk('What should I learn next?')">What Next?</button>
-                </div>
-                <div class="chat-disclaimer">
-                    🤖 AI assistant for course-related questions only. Service may be discontinued at any time without notice.
-                </div>
-                <div id="chatMessages" class="chat-messages">
-                    <div class="chat-msg bot">Hi! I can explain the Python code. Try the quick actions above or ask anything.</div>
-                </div>
-                <div class="chat-input-row">
-                    <input type="text" id="chatInput" placeholder="Ask about this code..." onkeydown="if(event.key==='Enter')sendChat()">
-                    <button onclick="sendChat()">Send</button>
-                </div>
-            </div>
+            </details>
         </div>
 
         <div class="status-bar">

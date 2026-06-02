@@ -269,6 +269,24 @@ body {
 }
 .example-btn.active-tab { background: #6366f1; color: white; border-color: #6366f1; }
 .example-btn:hover:not(.active-tab) { border-color: #6366f1; color: #6366f1; }
+.example-btn.level-beginner {
+    border-color: #22c55e;
+    color: #22c55e;
+}
+.example-btn.level-beginner.active-tab {
+    background: #22c55e;
+    color: #0a0f1a;
+    border-color: #22c55e;
+}
+.example-btn.level-intermediate {
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+.example-btn.level-intermediate.active-tab {
+    background: #f59e0b;
+    color: #0a0f1a;
+    border-color: #f59e0b;
+}
 
 /* CodeMirror */
 .CodeMirror {
@@ -315,6 +333,29 @@ body {
     border-top: 1px solid #1e293b;
     padding-top: 10px;
     margin-top: 4px;
+}
+
+/* Collapsible Sections */
+.collapsible-section {
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+.collapsible-section summary {
+    padding: 8px 12px;
+    background: #0a0f1a;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+}
+.collapsible-section summary:hover {
+    color: #00d4aa;
+}
+.collapsible-section[open] summary {
+    border-bottom: 1px solid #1e293b;
 }
 
 /* AI Chat Section */

@@ -210,7 +210,7 @@ function renderTabs(section, activeIndex) {
         const button =
             document.createElement("button");
 
-        button.className = "example-btn";
+        button.className = "example-btn level-" + (example.level || "beginner");
 
         button.innerText = example.name;
 
@@ -316,6 +316,13 @@ function clearOutput() {
 
     document.getElementById("output")
         .textContent = "";
+}
+
+function copyCode() {
+    const code = editor.getValue();
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('📋 Code copied to clipboard!');
+    });
 }
 
 let revealItems = [];
