@@ -283,21 +283,23 @@ body {
 
 /* Example Selector */
 .example-selector {
-    padding: 6px 12px;
+    padding: 8px 12px;
     background: #0d1117;
     border-bottom: 1px solid #1e293b;
     flex-shrink: 0;
+    overflow-x: auto;
 }
-#exampleTabs { display: flex; flex-wrap: wrap; gap: 4px; }
+#exampleTabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .example-btn {
     background: #1a2332;
     color: #94a3b8;
     border: 1px solid #1e293b;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
     cursor: pointer;
     transition: all 0.15s;
+    white-space: nowrap;
 }
 .example-btn.active-tab { background: #6366f1; color: white; border-color: #6366f1; }
 .example-btn:hover:not(.active-tab) { border-color: #475569; color: #e2e8f0; }

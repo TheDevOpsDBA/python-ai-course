@@ -225,12 +225,20 @@ function checkModuleBadges() {
 
 function trackCodeRun() {
     const progress = getProgress();
+    const section = courseData.modules[currentModule].sections[currentSection];
+    const runKey = "run_" + section.id;
+    
     progress.codeRuns += 1;
     saveProgress(progress);
 
     if (progress.codeRuns === 1) awardBadge("first-run");
     checkModuleBadges();
-    addXP(10, "Run code");
+    
+    // Only award XP on first run per section
+    if (!localStorage.getItem(runKey)) {
+        localStorage.setItem(runKey, "1");
+        addXP(10, "Run code");
+    }
 }
 
 function trackSectionComplete() {
