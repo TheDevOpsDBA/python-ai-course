@@ -432,7 +432,7 @@ function renderSection() {
 
     // Update line count
     setTimeout(() => {
-        if (editor) document.getElementById('lineCount').textContent = 'Lines: ' + editor.lineCount();
+        if (editor) document.getElementById('lineCount').textContent = 'Ln ' + editor.lineCount();
     }, 100);
 
     // Show/hide lab section
@@ -796,8 +796,19 @@ function toggleRightPanel() {
 function addChatMessage(text, role) {
     const messages = document.getElementById("chatMessages");
     const msg = document.createElement("div");
-    msg.className = `chat-msg ${role}`;
-    msg.innerHTML = text;
+    const isUser = role.includes("user");
+    msg.className = "ai-msg " + (isUser ? "user" : "assistant");
+    
+    const avatar = document.createElement("div");
+    avatar.className = "ai-msg-avatar";
+    avatar.textContent = isUser ? "👤" : "⚡";
+    
+    const bubble = document.createElement("div");
+    bubble.className = "ai-msg-bubble";
+    bubble.innerHTML = text;
+    
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
     messages.appendChild(msg);
     messages.scrollTop = messages.scrollHeight;
     return msg;

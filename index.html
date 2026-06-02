@@ -90,55 +90,69 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
     <button class="panel-toggle" id="panelToggle" onclick="toggleRightPanel()">◀ Code &amp; AI</button>
 
     <div class="right-panel" id="rightPanel">
-        <div class="right-panel-header">
-            <div class="file-badge" id="fileBadge">📄 example.py</div>
-        </div>
-
-        <div class="right-panel-body">
-            <div id="exampleTabs"></div>
-            <textarea id="editor"></textarea>
-            <div class="action-row">
-                <button onclick="runCode()">▶ Run</button>
-                <button onclick="runSelected()">▶ Selected</button>
-                <button onclick="copyCode()">📋 Copy</button>
-                <button onclick="clearOutput()">🧹 Clear</button>
+        <!-- IDE Header -->
+        <div class="ide-header">
+            <div class="ide-tabs">
+                <div class="ide-tab active" id="fileBadge">📄 example.py</div>
             </div>
-            <details class="collapsible-section" open>
-                <summary>📊 Output</summary>
-                <pre id="output"></pre>
-            </details>
-
-            <details class="collapsible-section">
-                <summary>⚡ Lab Assistant</summary>
-                <div class="ai-section-inner">
-                    <div class="ai-header">
-                        <span>⚡ Lab Assistant</span>
-                        <span class="ai-context">Context: 📄 Script | 📊 Output | 📖 Section</span>
-                    </div>
-                    <div class="ai-quick-actions">
-                        <button onclick="quickAsk('Explain this code line by line')">Explain Code</button>
-                        <button onclick="quickAsk('I got an error, help me fix it')">Fix Error</button>
-                        <button onclick="quickAsk('What should I learn next?')">What Next?</button>
-                    </div>
-                    <div class="chat-disclaimer">
-                        🤖 AI assistant for course-related questions only. Service may be discontinued at any time without notice.
-                    </div>
-                    <div id="chatMessages" class="chat-messages">
-                        <div class="chat-msg bot">Hi! I can explain the Python code. Try the quick actions above or ask anything.</div>
-                    </div>
-                    <div class="chat-input-row">
-                        <input type="text" id="chatInput" placeholder="Ask about this code..." onkeydown="if(event.key==='Enter')sendChat()">
-                        <button onclick="sendChat()">Send</button>
-                    </div>
-                </div>
-            </details>
+            <div class="ide-actions">
+                <button onclick="runCode()" class="ide-run-btn" title="Run (Ctrl+Enter)">▶ Run</button>
+                <button onclick="runSelected()" class="ide-action-btn" title="Run Selected">▶ Sel</button>
+                <button onclick="copyCode()" class="ide-action-btn" title="Copy Code">📋</button>
+                <button onclick="clearOutput()" class="ide-action-btn" title="Clear">🧹</button>
+            </div>
         </div>
 
-        <div class="status-bar">
-            <span>Python</span>
+        <!-- Example Selector -->
+        <div class="example-selector">
+            <div id="exampleTabs"></div>
+        </div>
+
+        <!-- Code Editor Area -->
+        <div class="editor-area">
+            <textarea id="editor"></textarea>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="terminal-section">
+            <div class="terminal-header">
+                <span class="terminal-title">⌂ TERMINAL</span>
+                <span class="terminal-badge">Python 3.11</span>
+            </div>
+            <pre id="output" class="terminal-output"><span class="terminal-prompt">>>> </span>Ready to run code...</pre>
+        </div>
+
+        <!-- AI Assistant -->
+        <div class="ai-assistant-section">
+            <div class="ai-assistant-header">
+                <div class="ai-avatar">⚡</div>
+                <span class="ai-title">Lab Assistant</span>
+                <span class="ai-status-dot" title="AI Ready">●</span>
+            </div>
+            <div class="ai-suggestions">
+                <button onclick="quickAsk('Explain this code line by line')">💡 Explain</button>
+                <button onclick="quickAsk('I got an error, help me fix it')">🔧 Fix Error</button>
+                <button onclick="quickAsk('What should I learn next?')">🎯 Next Steps</button>
+            </div>
+            <div id="chatMessages" class="ai-messages">
+                <div class="ai-msg assistant">
+                    <div class="ai-msg-avatar">⚡</div>
+                    <div class="ai-msg-bubble">I can explain the code, fix errors, or suggest what to learn next. Try clicking a suggestion above!</div>
+                </div>
+            </div>
+            <div class="ai-input-area">
+                <input type="text" id="chatInput" placeholder="Ask anything about this code..." onkeydown="if(event.key==='Enter')sendChat()">
+                <button onclick="sendChat()" class="ai-send-btn">↑</button>
+            </div>
+            <div class="ai-disclaimer">Course-related questions only. Service may change without notice.</div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="ide-statusbar">
+            <span>Python 3.11</span>
             <span>UTF-8</span>
-            <span id="lineCount">Lines: 0</span>
-            <span class="ai-status">AI: Ready ●</span>
+            <span id="lineCount">Ln 1</span>
+            <span class="statusbar-right">AI Ready ●</span>
         </div>
     </div>
 </div>
