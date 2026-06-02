@@ -3,6 +3,7 @@ let pyodide;
 
 let currentModule = 0;
 let currentSection = 0;
+let lastRenderedModule = -1;
 
 // OpenRouter API Configuration
 // Key is injected at deploy time via GitHub Actions
@@ -95,6 +96,28 @@ function renderSection() {
     const section =
         courseData.modules[currentModule]
         .sections[currentSection];
+
+    // Show lab objective card when entering a new module
+    const card = document.getElementById('labObjectiveCard');
+    const module = courseData.modules[currentModule];
+    if (currentModule !== lastRenderedModule && module.labObjective) {
+        lastRenderedModule = currentModule;
+        const obj = module.labObjective;
+        document.getElementById('labObjText').textContent = obj.objective;
+        document.getElementById('labObjTime').textContent = '⏱ ' + obj.duration;
+
+        const diffEl = document.getElementById('labObjDifficulty');
+        diffEl.textContent = '🧠 ' + obj.difficulty;
+        diffEl.className = 'lab-obj-badge difficulty ' + obj.difficulty.toLowerCase();
+
+        document.getElementById('labObjSkills').innerHTML = obj.skills.map(s => '<span>' + s + '</span>').join('');
+        document.getElementById('labObjTech').innerHTML = obj.technologies.map(t => '<span>' + t + '</span>').join('');
+
+        card.style.display = 'block';
+    } else if (currentModule !== lastRenderedModule) {
+        card.style.display = 'none';
+        lastRenderedModule = currentModule;
+    }
 
     document.getElementById("moduleSelect").value =
         currentModule;

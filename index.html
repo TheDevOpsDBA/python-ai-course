@@ -37,6 +37,28 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 
 <div class="main-container">
     <div class="left-panel" id="leftPanel">
+        <div class="lab-objective-card" id="labObjectiveCard" style="display:none;">
+            <div class="lab-obj-header">
+                <span class="lab-obj-icon">🎯</span>
+                <span class="lab-obj-title">LAB OBJECTIVE</span>
+                <button class="lab-obj-close" onclick="document.getElementById('labObjectiveCard').style.display='none'">✕</button>
+            </div>
+            <p class="lab-obj-text" id="labObjText"></p>
+            <div class="lab-obj-meta">
+                <span class="lab-obj-badge time" id="labObjTime">⏱ 10 min</span>
+                <span class="lab-obj-badge difficulty" id="labObjDifficulty">🧠 Beginner</span>
+            </div>
+            <div class="lab-obj-details">
+                <div class="lab-obj-skills">
+                    <span class="lab-obj-label">✅ Skills</span>
+                    <div class="lab-obj-tags" id="labObjSkills"></div>
+                </div>
+                <div class="lab-obj-tech">
+                    <span class="lab-obj-label">🛠 Technologies</span>
+                    <div class="lab-obj-tags" id="labObjTech"></div>
+                </div>
+            </div>
+        </div>
         <h2 class="section-heading" id="sectionHeading"></h2>
         <div class="diagram-card">
             <div class="diagram-box"></div>

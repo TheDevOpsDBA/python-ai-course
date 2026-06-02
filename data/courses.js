@@ -3,6 +3,13 @@ const courseData = {
     {
       "id": "module0",
       "title": "Module 1: Why IT Pros Need Python for AI",
+      "labObjective": {
+        "objective": "Understand why Python is essential for AI and automation, and execute your first Python statements.",
+        "duration": "10 min",
+        "difficulty": "Beginner",
+        "skills": ["print()", "variables", "f-strings"],
+        "technologies": ["Python 3", "Pyodide"]
+      },
       "sections": [
         {
           "id": "m1s1",
@@ -81,6 +88,13 @@ const courseData = {
     {
       "id": "module1",
       "title": "Module 2: Python Installation & Setup",
+      "labObjective": {
+        "objective": "Set up your Python development environment with virtual environments and VS Code.",
+        "duration": "15 min",
+        "difficulty": "Beginner",
+        "skills": ["pip", "venv", "VS Code setup"],
+        "technologies": ["Python 3", "pip", "VS Code"]
+      },
       "sections": [
         {
           "id": "m0s1",
@@ -162,6 +176,13 @@ const courseData = {
     {
       "id": "module2",
       "title": "Module 3: Python Basics",
+      "labObjective": {
+        "objective": "Master variables, data types, and input/output — the building blocks of every Python script.",
+        "duration": "20 min",
+        "difficulty": "Beginner",
+        "skills": ["variables", "data types", "type conversion", "f-strings", "input/output"],
+        "technologies": ["Python 3"]
+      },
       "sections": [
         {
           "id": "m2s1",
@@ -245,6 +266,13 @@ const courseData = {
     {
       "id": "module3",
       "title": "Module 4: Collections",
+      "labObjective": {
+        "objective": "Work with lists, tuples, and dictionaries to store and manipulate structured data.",
+        "duration": "20 min",
+        "difficulty": "Beginner",
+        "skills": ["lists", "tuples", "dictionaries", "iteration", "comprehensions"],
+        "technologies": ["Python 3"]
+      },
       "sections": [
         {
           "id": "m3s1",
@@ -333,6 +361,13 @@ const courseData = {
     {
       "id": "module4",
       "title": "Module 5: Operators",
+      "labObjective": {
+        "objective": "Use arithmetic, comparison, and logical operators to build calculations and conditions.",
+        "duration": "15 min",
+        "difficulty": "Beginner",
+        "skills": ["arithmetic", "comparison", "logical operators", "expressions"],
+        "technologies": ["Python 3"]
+      },
       "sections": [
         {
           "id": "m4s1",
@@ -411,6 +446,13 @@ const courseData = {
     {
       "id": "module5",
       "title": "Module 6: Control Flow",
+      "labObjective": {
+        "objective": "Control program execution with conditionals, loops, and range sequences.",
+        "duration": "20 min",
+        "difficulty": "Beginner",
+        "skills": ["if/elif/else", "for loops", "while loops", "range()", "break/continue"],
+        "technologies": ["Python 3"]
+      },
       "sections": [
         {
           "id": "m5s1",
@@ -499,6 +541,13 @@ const courseData = {
     {
       "id": "module6",
       "title": "Module 7: Functions",
+      "labObjective": {
+        "objective": "Create reusable functions with parameters, return values, and lambda expressions.",
+        "duration": "20 min",
+        "difficulty": "Intermediate",
+        "skills": ["def", "parameters", "return", "lambda", "*args/**kwargs"],
+        "technologies": ["Python 3"]
+      },
       "sections": [
         {
           "id": "m6s1",
@@ -582,6 +631,13 @@ const courseData = {
     {
       "id": "module7",
       "title": "Module 8: Error Handling",
+      "labObjective": {
+        "objective": "Handle errors gracefully with try/except and build robust scripts that don't crash.",
+        "duration": "15 min",
+        "difficulty": "Intermediate",
+        "skills": ["try/except", "finally", "raise", "custom exceptions"],
+        "technologies": ["Python 3"]
+      },
       "sections": [
         {
           "id": "m7s1",
@@ -641,6 +697,13 @@ const courseData = {
     {
       "id": "module8",
       "title": "Module 9: File Handling",
+      "labObjective": {
+        "objective": "Read, write, and process files — logs, CSV, and JSON — the backbone of automation.",
+        "duration": "20 min",
+        "difficulty": "Intermediate",
+        "skills": ["open()", "csv module", "json module", "file parsing"],
+        "technologies": ["Python 3", "csv", "json"]
+      },
       "sections": [
         {
           "id": "m8s1",
@@ -724,6 +787,13 @@ const courseData = {
     {
       "id": "module9",
       "title": "Module 10: Modules & Packages",
+      "labObjective": {
+        "objective": "Organise code into reusable modules and install third-party packages with pip.",
+        "duration": "15 min",
+        "difficulty": "Intermediate",
+        "skills": ["import", "pip install", "creating modules", "__name__"],
+        "technologies": ["Python 3", "pip", "PyPI"]
+      },
       "sections": [
         {
           "id": "m9s1",
@@ -805,6 +875,13 @@ const courseData = {
     {
       "id": "module10",
       "title": "Module 11: Object-Oriented Programming",
+      "labObjective": {
+        "objective": "Model real-world entities with classes, inheritance, and encapsulation.",
+        "duration": "25 min",
+        "difficulty": "Intermediate",
+        "skills": ["classes", "objects", "inheritance", "@property", "encapsulation"],
+        "technologies": ["Python 3"]
+      },
       "sections": [
         {
           "id": "m10s1",
@@ -871,6 +948,13 @@ const courseData = {
     {
       "id": "module11",
       "title": "Module 12: Python for Automation",
+      "labObjective": {
+        "objective": "Automate infrastructure tasks using APIs, scheduled scripts, and monitoring patterns.",
+        "duration": "25 min",
+        "difficulty": "Intermediate",
+        "skills": ["REST APIs", "requests", "logging", "argparse", "automation patterns"],
+        "technologies": ["Python 3", "requests", "logging"]
+      },
       "sections": [
         {
           "id": "m11s1",
@@ -942,6 +1026,13 @@ const courseData = {
     {
       "id": "module12",
       "title": "Module 13: Intro to AI & Machine Learning",
+      "labObjective": {
+        "objective": "Understand AI/ML concepts and build your first machine learning model.",
+        "duration": "30 min",
+        "difficulty": "Intermediate",
+        "skills": ["ML concepts", "pandas", "scikit-learn", "train/test split", "prediction"],
+        "technologies": ["Python 3", "pandas", "scikit-learn", "numpy"]
+      },
       "sections": [
         {
           "id": "m12s1",
@@ -1013,6 +1104,13 @@ const courseData = {
     {
       "id": "module13",
       "title": "Module 14: Intro to Generative AI",
+      "labObjective": {
+        "objective": "Explore generative AI, prompt engineering, and build AI-powered tools with LLM APIs.",
+        "duration": "25 min",
+        "difficulty": "Advanced",
+        "skills": ["LLMs", "prompt engineering", "API calls", "RAG concepts"],
+        "technologies": ["Python 3", "OpenAI API", "LangChain"]
+      },
       "sections": [
         {
           "id": "m13s1",
@@ -1079,6 +1177,13 @@ const courseData = {
     {
       "id": "module14",
       "title": "Module 15: Python for AI Projects",
+      "labObjective": {
+        "objective": "Structure, build, and deploy complete AI projects with proper architecture.",
+        "duration": "30 min",
+        "difficulty": "Advanced",
+        "skills": ["project structure", "ML pipelines", "Flask API", "Docker", "deployment"],
+        "technologies": ["Python 3", "Flask", "Docker", "scikit-learn"]
+      },
       "sections": [
         {
           "id": "m14s1",
