@@ -113,6 +113,14 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
             <textarea id="editor"></textarea>
         </div>
 
+        <!-- Action Buttons -->
+        <div class="editor-actions">
+            <button onclick="runCode()" class="ide-run-btn">▶ Run All</button>
+            <button onclick="runSelected()" class="ide-action-btn">▶ Selected</button>
+            <button onclick="copyCode()" class="ide-action-btn">📋 Copy</button>
+            <button onclick="clearOutput()" class="ide-action-btn">🧹 Clear</button>
+        </div>
+
         <!-- Terminal Output -->
         <div class="terminal-section">
             <div class="terminal-header">

@@ -312,6 +312,37 @@ body {
     max-height: 300px;
     overflow: hidden;
 }
+
+/* Editor Action Buttons */
+.editor-actions {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #0a0f1a;
+    border-top: 1px solid #1e293b;
+    border-bottom: 1px solid #1e293b;
+}
+.ide-run-btn {
+    background: #22c55e !important;
+    color: #0a0f1a !important;
+    border: none !important;
+    padding: 6px 14px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+.ide-run-btn:hover { background: #16a34a !important; }
+.ide-action-btn {
+    background: #1a2332 !important;
+    border: 1px solid #1e293b !important;
+    color: #94a3b8 !important;
+    padding: 6px 12px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+}
+.ide-action-btn:hover { border-color: #6366f1 !important; color: #6366f1 !important; }
 .CodeMirror {
     height: 250px !important;
     font-size: 13px;
