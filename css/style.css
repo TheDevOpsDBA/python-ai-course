@@ -1597,3 +1597,28 @@ body {
     font-size: 12px;
     text-align: center;
 }
+
+
+/* Challenge editor locked state */
+.challenge-editor-textarea.locked {
+    background: linear-gradient(135deg, #0d1424 0%, #0a1020 100%);
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.1) inset;
+}
+.challenge-editor-textarea.locked::after { content: '🔒'; }
+
+.challenge-feedback.locked {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fcd34d;
+}
+
+.challenge-submit:disabled,
+.challenge-hint-btn:disabled,
+.challenge-solution-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}

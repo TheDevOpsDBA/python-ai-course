@@ -43,6 +43,7 @@ In the Realtime Database **Rules** tab, paste:
         "badges":            { ".validate": "newData.hasChildren() || newData.val() === null" },
         "completedSections": { ".validate": "newData.hasChildren() || newData.val() === null" },
         "completedChallenges": { ".validate": "newData.hasChildren() || newData.val() === null" },
+        "viewedChallengeSolutions": { ".validate": "newData.hasChildren() || newData.val() === null" },
         "codeRuns":          { ".validate": "newData.isNumber()" },
         "labsCompleted":     { ".validate": "newData.isNumber()" },
         "createdAt":         { ".validate": true },

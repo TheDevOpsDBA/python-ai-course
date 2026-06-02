@@ -71,6 +71,7 @@ function syncProgressToCloud(progress) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
         const completedChallenges = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+        const viewedSolutions = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
         window.fbHelpers.saveUser(currentUser.uid, {
             displayName: localStorage.getItem('labUserName') || currentUser.displayName || 'Student',
             xp: progress.xp || 0,
@@ -78,6 +79,7 @@ function syncProgressToCloud(progress) {
             badges: progress.badges || [],
             completedSections: progress.completedSections || [],
             completedChallenges: completedChallenges,
+            viewedChallengeSolutions: viewedSolutions,
             codeRuns: progress.codeRuns || 0,
             labsCompleted: progress.labsCompleted || 0,
             course: window.fbHelpers.COURSE_ID
@@ -412,6 +414,10 @@ function mergeCloudIntoLocal(cloud) {
     const localCh = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
     const cloudCh = cloud.completedChallenges || [];
     localStorage.setItem('completedChallenges', JSON.stringify(Array.from(new Set([...localCh, ...cloudCh]))));
+
+    const localViewed = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
+    const cloudViewed = cloud.viewedChallengeSolutions || [];
+    localStorage.setItem('viewedChallengeSolutions', JSON.stringify(Array.from(new Set([...localViewed, ...cloudViewed]))));
 
     if (cloud.displayName) localStorage.setItem('labUserName', cloud.displayName);
 }
@@ -1400,8 +1406,47 @@ function startChallenge(index) {
     document.getElementById('challengeFeedback').style.display = 'none';
     document.getElementById('challengeOutput').style.display = 'none';
     
-    // Set starter code in the embedded editor
-    document.getElementById('challengeEditor').value = '# Challenge: ' + currentChallenge.title + '\n# Write your solution below\n\n';
+    const editorEl = document.getElementById('challengeEditor');
+
+    // If the user has already viewed the official solution, lock the editor
+    // and show the solution. Solution-viewed state persists in localStorage and Firebase.
+    const viewedSolutions = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
+    if (viewedSolutions.includes(currentChallenge.id)) {
+        editorEl.value = currentChallenge.solution;
+        lockChallengeEditor(true);
+        showChallengeLockedNotice();
+    } else {
+        editorEl.value = '# Challenge: ' + currentChallenge.title + '\n# Write your solution below\n\n';
+        lockChallengeEditor(false);
+    }
+}
+
+function lockChallengeEditor(locked) {
+    const editorEl = document.getElementById('challengeEditor');
+    const submitBtn = document.querySelector('.challenge-submit');
+    const solutionBtn = document.querySelector('.challenge-solution-btn');
+    const hintBtn = document.querySelector('.challenge-hint-btn');
+
+    if (locked) {
+        editorEl.setAttribute('readonly', 'readonly');
+        editorEl.classList.add('locked');
+        if (submitBtn) submitBtn.disabled = true;
+        if (solutionBtn) solutionBtn.disabled = true;
+        if (hintBtn) hintBtn.disabled = true;
+    } else {
+        editorEl.removeAttribute('readonly');
+        editorEl.classList.remove('locked');
+        if (submitBtn) submitBtn.disabled = false;
+        if (solutionBtn) solutionBtn.disabled = false;
+        if (hintBtn) hintBtn.disabled = false;
+    }
+}
+
+function showChallengeLockedNotice() {
+    const feedback = document.getElementById('challengeFeedback');
+    feedback.style.display = 'block';
+    feedback.className = 'challenge-feedback locked';
+    feedback.innerHTML = '🔒 <strong>Challenge complete.</strong> The official solution is shown for reference. Editor is locked.';
 }
 
 async function runAndSubmitChallenge() {
@@ -1496,11 +1541,45 @@ function showChallengeHint() {
 
 function showChallengeSolution() {
     if (!currentChallenge) return;
-    document.getElementById('challengeEditor').value = currentChallenge.solution;
+
+    const completed = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
     const feedback = document.getElementById('challengeFeedback');
     feedback.style.display = 'block';
-    feedback.className = 'challenge-feedback';
-    feedback.innerHTML = '👁 Solution loaded into the editor above. Click "▶ Run & Submit" to see it work!';
+
+    // Gate: only allow viewing solution after the challenge is completed.
+    if (!completed.includes(currentChallenge.id)) {
+        feedback.className = 'challenge-feedback needs-work';
+        feedback.innerHTML = '🔒 <strong>Solution locked.</strong> Submit a passing answer first to unlock the official solution. Use 💡 Hint if you need a nudge.';
+        return;
+    }
+
+    // Confirm before revealing — viewing the solution permanently locks the editor.
+    const ok = confirm(
+        'Viewing the official solution will permanently lock this challenge\u2019s editor (you won\u2019t be able to edit it again).\n\nProceed?'
+    );
+    if (!ok) {
+        feedback.style.display = 'none';
+        return;
+    }
+
+    // Load solution + record that the user has viewed it (locally and in the cloud).
+    document.getElementById('challengeEditor').value = currentChallenge.solution;
+
+    const viewed = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
+    if (!viewed.includes(currentChallenge.id)) {
+        viewed.push(currentChallenge.id);
+        localStorage.setItem('viewedChallengeSolutions', JSON.stringify(viewed));
+        // Sync to Firebase immediately
+        if (currentUser && !currentUser.isGuest && window.fbHelpers) {
+            window.fbHelpers.saveUser(currentUser.uid, {
+                viewedChallengeSolutions: viewed
+            }).catch(() => {});
+        }
+    }
+
+    lockChallengeEditor(true);
+    feedback.className = 'challenge-feedback locked';
+    feedback.innerHTML = '👁 <strong>Official solution shown above.</strong> Editor is now locked for this challenge.';
 }
 
 // ===== END CHALLENGE MODE =====
