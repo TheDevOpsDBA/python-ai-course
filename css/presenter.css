@@ -22,7 +22,13 @@
     gap: 16px;
     flex: 0 0 auto;
 }
-.presenter-top-bar .nav-logo { width: 36px; height: 36px; border-radius: 6px; }
+.presenter-top-bar .nav-logo {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+    display: block;
+}
 
 .presenter-title {
     display: flex;

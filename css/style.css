@@ -24,7 +24,14 @@ body {
     z-index: 200;
 }
 .logo-link { display: flex; align-items: center; }
-.nav-logo { height: 28px; border-radius: 4px; }
+.nav-logo {
+    height: 32px;
+    width: auto;                /* preserve native aspect ratio */
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-user-drag: none;
+    display: block;
+}
 .breadcrumb { margin-left: 16px; color: #94a3b8; font-size: 13px; }
 .progress-container {
     margin-left: auto;
@@ -1315,10 +1322,12 @@ body {
 }
 
 .auth-logo {
-    width: 72px;
-    height: 72px;
-    border-radius: 12px;
+    height: 56px;
+    width: auto;
+    max-width: 280px;
     margin-bottom: 14px;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
 }
 
 .auth-title {
@@ -1750,10 +1759,12 @@ body {
 @keyframes bootFade { from { opacity: 0; } to { opacity: 1; } }
 
 .boot-logo {
-    width: 84px;
-    height: 84px;
-    border-radius: 14px;
-    opacity: 0.9;
+    height: 64px;
+    width: auto;
+    max-width: 320px;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+    opacity: 0.95;
 }
 .boot-spinner {
     width: 36px;
