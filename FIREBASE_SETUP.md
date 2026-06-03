@@ -29,8 +29,8 @@ In the Realtime Database **Rules** tab, paste:
 {
   "rules": {
     "admins": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
         ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
       }
     },
@@ -85,8 +85,24 @@ Then in the Realtime Database, manually create:
    /<your-uid>: true
 ```
 
+**Important — the value must be a real boolean `true`, not the string `"true"`.**
+
+Step-by-step in the Firebase Console:
+
+1. Open **Realtime Database → Data**
+2. Hover over the root node and click `+`
+3. **Name:** `admins`, **Value:** leave blank (it's a parent), click **Add**
+4. Hover over the new `admins` node and click `+`
+5. **Name:** paste your UID exactly (case-sensitive)
+6. **Value:** type `true` (no quotes — the console should auto-detect the boolean and show a small "(boolean)" hint underneath; if it shows "(string)", delete and retype until it goes blue)
+7. Click **Add**
+
 That's the gate the presenter "👥 Manage Users" button checks. Repeat for any
 co-presenter or co-instructor.
+
+If you still see "not admin" after all three of those, hard-reload the presenter
+page (Ctrl+Shift+R) — the auth state is cached for the duration of the session
+and won't re-check `/admins` until the next sign-in or full reload.
 
 ## 4. Add authorized domains
 

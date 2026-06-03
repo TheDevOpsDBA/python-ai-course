@@ -133,8 +133,13 @@ window.fbHelpers = {
     isAdmin: async (uid) => {
         try {
             const snap = await get(ref(db, `admins/${uid}`));
-            return snap.exists() && snap.val() === true;
-        } catch (e) { return false; }
+            // Accept any truthy value (true, "true", 1, etc.) — admins added
+            // manually via the console sometimes get a string by accident.
+            return snap.exists() && (snap.val() === true || snap.val() === 'true' || snap.val() === 1);
+        } catch (e) {
+            console.warn("isAdmin check failed:", e && e.message);
+            return false;
+        }
     },
 
     // List every user record (admin only — fails silently for non-admins)
