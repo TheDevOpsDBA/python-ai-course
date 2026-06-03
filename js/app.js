@@ -65,17 +65,15 @@ function getProgress() {
     };
     try {
         const key = getProgressKey();
-        let saved = localStorage.getItem(key);
-        // One-time migration of the old non-namespaced key
-        if (!saved) {
-            const legacy = localStorage.getItem("pythonLabProgress");
-            if (legacy) {
-                saved = legacy;
-                localStorage.setItem(key, legacy);
-                localStorage.removeItem("pythonLabProgress");
-            }
-        }
+        const saved = localStorage.getItem(key);
         if (saved) return { ...defaults, ...JSON.parse(saved) };
+        // Legacy "pythonLabProgress" is intentionally NOT auto-migrated here — it
+        // contained XP from whichever course wrote last, so copying it forward
+        // would leak progress between courses. Cloud is the source of truth on
+        // sign-in. We only clear the legacy key so future reads start clean.
+        if (localStorage.getItem("pythonLabProgress")) {
+            localStorage.removeItem("pythonLabProgress");
+        }
     } catch (e) {}
     return defaults;
 }

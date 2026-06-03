@@ -642,26 +642,64 @@ async function refreshAdminUsers() {
     try {
         adminAllUsers = await window.fbHelpers.listAllUsers();
         adminAllUsers.sort((a, b) => (b.xp || 0) - (a.xp || 0));
-        renderAdminUserList(adminAllUsers);
-        subtitle.textContent = adminAllUsers.length + " students";
+        rebuildCourseFilter();
+        applyAdminFilters();
+        subtitle.textContent = adminAllUsers.length + " enrolments across "
+            + new Set(adminAllUsers.map(u => u.course)).size + " courses";
     } catch (err) {
         listEl.innerHTML = '<div class="admin-loading">Failed to load: ' + (err.message || err) + '</div>';
         subtitle.textContent = "Error";
     }
 }
 
-function filterAdminUsers() {
-    const q = document.getElementById("adminSearch").value.trim().toLowerCase();
-    if (!q) return renderAdminUserList(adminAllUsers);
-    const filtered = adminAllUsers.filter(u =>
-        (u.displayName || "").toLowerCase().includes(q) ||
-        (u.email || "").toLowerCase().includes(q) ||
-        (u.uid || "").toLowerCase().includes(q)
-    );
-    renderAdminUserList(filtered);
-    document.getElementById("adminFooter").textContent =
-        `${filtered.length} of ${adminAllUsers.length} match "${q}"`;
+function rebuildCourseFilter() {
+    const sel = document.getElementById("adminCourseFilter");
+    if (!sel) return;
+    const courses = Array.from(new Set(adminAllUsers.map(u => u.course))).filter(Boolean).sort();
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All courses</option>'
+        + courses.map(c => `<option value="${c}">${courseLabel(c)}</option>`).join('');
+    if (courses.includes(current)) sel.value = current;
 }
+
+function courseLabel(courseId) {
+    const map = {
+        "python-for-ai": "Python for AI",
+        "ai-sql-dba":    "AI for SQL Server DBAs",
+        "ps-sql-dba":    "PowerShell for SQL DBAs",
+        "jira-ps":       "Jira Automation (PowerShell)",
+        "(none)":        "(no progress yet)"
+    };
+    return map[courseId] || courseId;
+}
+
+function applyAdminFilters() {
+    const q = document.getElementById("adminSearch").value.trim().toLowerCase();
+    const course = document.getElementById("adminCourseFilter").value;
+
+    let filtered = adminAllUsers;
+    if (course) filtered = filtered.filter(u => u.course === course);
+    if (q) {
+        filtered = filtered.filter(u =>
+            (u.displayName || "").toLowerCase().includes(q) ||
+            (u.email || "").toLowerCase().includes(q) ||
+            (u.uid || "").toLowerCase().includes(q)
+        );
+    }
+
+    renderAdminUserList(filtered);
+
+    const footer = document.getElementById("adminFooter");
+    const parts = [];
+    if (q)      parts.push(`search "${q}"`);
+    if (course) parts.push(`course ${courseLabel(course)}`);
+    footer.textContent = parts.length
+        ? `${filtered.length} of ${adminAllUsers.length} match — ${parts.join(', ')}`
+        : `${filtered.length} enrolment${filtered.length === 1 ? '' : 's'}`;
+}
+
+// Backwards-compat alias for the old onclick handlers
+function filterAdminUsers() { applyAdminFilters(); }
 
 function renderAdminUserList(users) {
     const listEl = document.getElementById("adminList");
@@ -674,19 +712,24 @@ function renderAdminUserList(users) {
         const sec = (u.completedSections || []).length;
         const ch = (u.completedChallenges || []).length;
         const isMe = adminCurrentUser && u.uid === adminCurrentUser.uid;
+        const courseTag = u.course && u.course !== "(none)"
+            ? `<span class="admin-course-tag course-${u.course}">${courseLabel(u.course)}</span>`
+            : `<span class="admin-course-tag none">—</span>`;
+        const rowKey = u.uid + "::" + (u.course || "");
         html += `
-            <div class="admin-row${isMe ? ' me' : ''}" data-uid="${u.uid}">
+            <div class="admin-row${isMe ? ' me' : ''}" data-key="${rowKey}">
                 <span class="admin-cell admin-name">${esc(u.displayName || "Anonymous")}${isMe ? ' <em>(you)</em>' : ''}</span>
                 <span class="admin-cell admin-email">${esc(u.email || "—")}</span>
+                <span class="admin-cell">${courseTag}</span>
                 <span class="admin-cell admin-xp">${u.xp || 0}</span>
                 <span class="admin-cell">${u.level || 1}</span>
                 <span class="admin-cell">${sec}</span>
                 <span class="admin-cell">${ch}</span>
                 <span class="admin-cell admin-actions">
-                    <button class="admin-action-btn admin-view"   onclick="adminViewUser('${u.uid}')"   title="View details">👁</button>
-                    <button class="admin-action-btn admin-rename" onclick="adminRenameUser('${u.uid}')" title="Rename">✎</button>
-                    <button class="admin-action-btn admin-reset"  onclick="adminResetUser('${u.uid}')"  title="Reset progress (keeps account)">↺</button>
-                    <button class="admin-action-btn admin-delete" onclick="adminDeleteUser('${u.uid}')" title="Delete record (auth account remains)">🗑</button>
+                    <button class="admin-action-btn admin-view"   onclick="adminViewUser('${u.uid}', '${u.course}')"   title="View details">👁</button>
+                    <button class="admin-action-btn admin-rename" onclick="adminRenameUser('${u.uid}')"               title="Rename (affects all courses)">✎</button>
+                    <button class="admin-action-btn admin-reset"  onclick="adminResetUser('${u.uid}', '${u.course}')"  title="Reset progress for this course">↺</button>
+                    <button class="admin-action-btn admin-delete" onclick="adminDeleteUser('${u.uid}', '${u.course}')" title="Delete this course's record">🗑</button>
                 </span>
             </div>`;
     });
@@ -698,14 +741,16 @@ function esc(s) {
 }
 
 // === Action handlers ===
-async function adminViewUser(uid) {
-    const u = adminAllUsers.find(x => x.uid === uid) || await window.fbHelpers.getUser(uid);
+async function adminViewUser(uid, courseId) {
+    const u = adminAllUsers.find(x => x.uid === uid && (!courseId || x.course === courseId))
+        || adminAllUsers.find(x => x.uid === uid)
+        || await window.fbHelpers.getUser(uid);
     if (!u) return alert("User not found.");
     const lines = [
         `Name:           ${u.displayName || "—"}`,
         `Email:          ${u.email || "—"}`,
         `UID:            ${u.uid || uid}`,
-        `Course:         ${u.course || "—"}`,
+        `Course:         ${courseLabel(u.course || "")}`,
         `XP:             ${u.xp || 0}`,
         `Level:          ${u.level || 1}`,
         `Sections done:  ${(u.completedSections || []).length}`,
@@ -720,7 +765,7 @@ async function adminViewUser(uid) {
 async function adminRenameUser(uid) {
     const u = adminAllUsers.find(x => x.uid === uid);
     const current = u ? (u.displayName || "") : "";
-    const next = prompt(`Rename student "${current}" to:`, current);
+    const next = prompt(`Rename student "${current}" to:\n(this updates their identity across ALL courses)`, current);
     if (!next || !next.trim() || next.trim() === current) return;
     try {
         await window.fbHelpers.saveUser(uid, { displayName: next.trim() });
@@ -731,33 +776,45 @@ async function adminRenameUser(uid) {
     }
 }
 
-async function adminResetUser(uid) {
-    const u = adminAllUsers.find(x => x.uid === uid);
+async function adminResetUser(uid, courseId) {
+    const u = adminAllUsers.find(x => x.uid === uid && x.course === courseId);
     const name = u ? (u.displayName || u.email || uid) : uid;
-    if (!confirm(`Reset progress for ${name}?\n\nXP, badges, completed sections, and challenges will be cleared.\nTheir sign-in account remains intact.`)) return;
+    const cLabel = courseLabel(courseId || "");
+    if (!courseId || courseId === "(none)") {
+        return alert("This user has no course progress to reset.");
+    }
+    if (!confirm(
+        `Reset ${cLabel} progress for ${name}?\n\n` +
+        `XP, badges, completed sections, and challenges for this course will be cleared.\n` +
+        `Their sign-in account and progress on OTHER courses remain intact.`
+    )) return;
     try {
-        await window.fbHelpers.resetUserProgress(uid);
-        toast(`Progress reset for ${name}`);
+        await window.fbHelpers.resetUserProgress(uid, courseId);
+        toast(`${cLabel}: reset for ${name}`);
         refreshAdminUsers();
     } catch (err) {
         alert("Reset failed: " + (err.message || err));
     }
 }
 
-async function adminDeleteUser(uid) {
-    const u = adminAllUsers.find(x => x.uid === uid);
+async function adminDeleteUser(uid, courseId) {
+    const u = adminAllUsers.find(x => x.uid === uid && x.course === courseId);
     const name = u ? (u.displayName || u.email || uid) : uid;
+    const cLabel = courseLabel(courseId || "");
+    if (!courseId || courseId === "(none)") {
+        return alert("This user has no course progress to delete.");
+    }
     if (!confirm(
-        `Delete database record for ${name}?\n\n` +
-        `• Their leaderboard entry and progress will be removed.\n` +
-        `• Their Firebase Auth account is NOT deleted by this — they can sign in again with the same email.\n` +
-        `• To fully delete the account, use the Firebase Console (link in toolbar).\n\n` +
+        `Delete ${cLabel} record for ${name}?\n\n` +
+        `• Removes their progress + leaderboard entry for this course only.\n` +
+        `• Their sign-in account and OTHER courses' progress are kept.\n` +
+        `• To fully delete the auth account, use the Firebase Console (link in toolbar).\n\n` +
         `Continue?`
     )) return;
 
     try {
-        await window.fbHelpers.deleteUserRecord(uid);
-        toast(`Record deleted for ${name}`);
+        await window.fbHelpers.deleteUserRecord(uid, courseId);
+        toast(`${cLabel}: record deleted for ${name}`);
         refreshAdminUsers();
     } catch (err) {
         alert("Delete failed: " + (err.message || err));

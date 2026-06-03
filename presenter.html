@@ -126,6 +126,9 @@
         </div>
         <div class="admin-toolbar">
             <input type="text" id="adminSearch" placeholder="🔍 Search by name or email…" oninput="filterAdminUsers()">
+            <select id="adminCourseFilter" onchange="filterAdminUsers()" title="Filter by course">
+                <option value="">All courses</option>
+            </select>
             <button onclick="refreshAdminUsers()" class="admin-refresh-btn">↻ Refresh</button>
             <a href="https://console.firebase.google.com/project/powershell-academy-labs/authentication/users"
                target="_blank" class="admin-console-link" title="Delete auth accounts in Firebase Console">
@@ -135,6 +138,7 @@
         <div class="admin-list-header">
             <span>Name</span>
             <span>Email</span>
+            <span>Course</span>
             <span>XP</span>
             <span>Lv</span>
             <span>✓ Sec</span>

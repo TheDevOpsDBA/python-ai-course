@@ -611,7 +611,7 @@
 .admin-list-header,
 .admin-row {
     display: grid;
-    grid-template-columns: 1.4fr 1.6fr 70px 50px 70px 70px 200px;
+    grid-template-columns: 1.3fr 1.5fr 1.2fr 70px 50px 70px 70px 200px;
     align-items: center;
     padding: 10px 22px;
     gap: 6px;
@@ -707,6 +707,57 @@
     .admin-row :nth-child(4),
     .admin-row :nth-child(5),
     .admin-row :nth-child(6) {
+        display: none;
+    }
+}
+
+
+/* Admin: course filter + tag */
+#adminCourseFilter {
+    background: #0a0f1a;
+    color: #f1f5f9;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    min-width: 180px;
+}
+#adminCourseFilter:focus { border-color: #ec4899; outline: none; }
+
+.admin-course-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.6;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.admin-course-tag.course-python-for-ai { background: rgba(0, 212, 170, 0.15);  color: #6ee7d3; border-color: rgba(0, 212, 170, 0.3); }
+.admin-course-tag.course-ai-sql-dba    { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border-color: rgba(99, 102, 241, 0.3); }
+.admin-course-tag.course-ps-sql-dba    { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.3); }
+.admin-course-tag.course-jira-ps       { background: rgba(0, 180, 216, 0.15);  color: #67e8f9; border-color: rgba(0, 180, 216, 0.3); }
+.admin-course-tag.none                 { background: rgba(148, 163, 184, 0.1); color: #94a3b8; border-color: rgba(148, 163, 184, 0.2); }
+
+/* Responsive: collapse columns on small screens */
+@media (max-width: 1100px) {
+    .admin-list-header,
+    .admin-row {
+        grid-template-columns: 1.2fr 1fr 1fr 60px 110px;
+    }
+    .admin-list-header :nth-child(5),
+    .admin-list-header :nth-child(6),
+    .admin-list-header :nth-child(7),
+    .admin-row :nth-child(5),
+    .admin-row :nth-child(6),
+    .admin-row :nth-child(7) {
         display: none;
     }
 }

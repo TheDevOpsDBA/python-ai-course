@@ -236,39 +236,66 @@ window.fbHelpers = {
         }
     },
 
-    // List every user record — flatten into a per-course view
+    // List every user record. For each user, return one entry per course
+    // they have progress in, plus identity info. This lets the admin UI filter
+    // by course while still showing every record.
     listAllUsers: async () => {
         const snap = await get(ref(db, "users"));
         if (!snap.exists()) return [];
         const list = [];
         snap.forEach((child) => {
             const u = child.val() || {};
-            const courseProgress = (u.courses && u.courses[COURSE_ID]) || {};
-            list.push({
+            const identity = {
                 uid: child.key,
                 displayName: u.displayName || "",
                 email:       u.email || "",
                 photoURL:    u.photoURL || "",
-                course:      COURSE_ID,
-                xp:                       courseProgress.xp || 0,
-                level:                    courseProgress.level || 1,
-                badges:                   courseProgress.badges || [],
-                completedSections:        courseProgress.completedSections || [],
-                completedChallenges:      courseProgress.completedChallenges || [],
-                viewedChallengeSolutions: courseProgress.viewedChallengeSolutions || [],
-                codeRuns:                 courseProgress.codeRuns || 0,
-                labsCompleted:            courseProgress.labsCompleted || 0,
-                createdAt: u.createdAt,
-                lastSeen:  u.lastSeen
+                createdAt:   u.createdAt,
+                lastSeen:    u.lastSeen
+            };
+            const courses = u.courses || {};
+            const courseIds = Object.keys(courses);
+
+            if (courseIds.length === 0) {
+                // Identity-only — user signed in but never produced course progress
+                list.push({
+                    ...identity,
+                    course: "(none)",
+                    xp: 0,
+                    level: 1,
+                    badges: [],
+                    completedSections: [],
+                    completedChallenges: [],
+                    viewedChallengeSolutions: [],
+                    codeRuns: 0,
+                    labsCompleted: 0
+                });
+                return;
+            }
+            courseIds.forEach((cid) => {
+                const cp = courses[cid] || {};
+                list.push({
+                    ...identity,
+                    course: cid,
+                    xp: cp.xp || 0,
+                    level: cp.level || 1,
+                    badges: cp.badges || [],
+                    completedSections: cp.completedSections || [],
+                    completedChallenges: cp.completedChallenges || [],
+                    viewedChallengeSolutions: cp.viewedChallengeSolutions || [],
+                    codeRuns: cp.codeRuns || 0,
+                    labsCompleted: cp.labsCompleted || 0
+                });
             });
         });
         return list;
     },
 
-    // Reset a user's progress *for this course only*
-    resetUserProgress: (uid) => {
-        return set(ref(db, courseRoot(uid)), {
-            course: COURSE_ID,
+    // Reset a user's progress for a specific course (defaults to current course)
+    resetUserProgress: (uid, courseId) => {
+        const cid = courseId || COURSE_ID;
+        return set(ref(db, `users/${uid}/courses/${cid}`), {
+            course: cid,
             xp: 0,
             level: 1,
             badges: [],
@@ -280,9 +307,10 @@ window.fbHelpers = {
         });
     },
 
-    // Delete this course's progress for a user — keeps their identity + other courses
-    deleteUserRecord: (uid) => {
-        return set(ref(db, courseRoot(uid)), null);
+    // Delete a user's progress for a specific course (defaults to current course)
+    deleteUserRecord: (uid, courseId) => {
+        const cid = courseId || COURSE_ID;
+        return set(ref(db, `users/${uid}/courses/${cid}`), null);
     },
 
     getUser: async (uid) => {
