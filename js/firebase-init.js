@@ -1,5 +1,13 @@
 // Firebase Initialization & Auth/DB Helpers
 // Exposes window.fbAuth, window.fbDB, window.fbHelpers for app.js to consume.
+//
+// Schema (per course isolation):
+//   users/{uid}/
+//     displayName, email, photoURL, createdAt, lastSeen   (shared identity)
+//     courses/{courseId}/
+//       xp, level, badges[], completedSections[], completedChallenges[],
+//       viewedChallengeSolutions[], codeRuns, labsCompleted,
+//       lastSession, editorState/{sectionId}, chatHistory/{sectionId}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import {
@@ -40,83 +48,173 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Pin auth state to localStorage so users stay signed in across browser restarts.
-// Without this, Safari (especially on iOS) can fall back to in-memory persistence
-// and force a fresh login on every tab.
 setPersistence(auth, browserLocalPersistence).catch((err) => {
-    console.warn("setPersistence failed (auth will still work, just may not survive restarts):", err);
+    console.warn("setPersistence failed:", err);
 });
 
-// Course identifier — different courses share the same Firebase project
+// Course identifier — overridden per deploy
 const COURSE_ID = "python-for-ai";
 
-// Expose globally for non-module app.js
+// Path helpers
+const userRoot   = (uid) => `users/${uid}`;
+const courseRoot = (uid) => `users/${uid}/courses/${COURSE_ID}`;
+
+// Identity-only fields (live at user root, shared across courses)
+const IDENTITY_FIELDS = ["displayName", "email", "photoURL", "createdAt", "lastSeen"];
+// Progress fields (live under the course bucket)
+const PROGRESS_FIELDS = [
+    "xp", "level", "badges", "completedSections", "completedChallenges",
+    "viewedChallengeSolutions", "codeRuns", "labsCompleted", "course"
+];
+
 window.fbAuth = auth;
 window.fbDB = db;
 window.fbHelpers = {
     COURSE_ID,
     onAuthStateChanged: (cb) => onAuthStateChanged(auth, cb),
-    signInEmail: (email, pwd) => signInWithEmailAndPassword(auth, email, pwd),
-    signUpEmail: async (email, pwd, displayName) => {
+    signInEmail:   (email, pwd) => signInWithEmailAndPassword(auth, email, pwd),
+    signUpEmail:   async (email, pwd, displayName) => {
         const cred = await createUserWithEmailAndPassword(auth, email, pwd);
         if (displayName) await updateProfile(cred.user, { displayName });
         return cred;
     },
-    signInGoogle: () => signInWithPopup(auth, new GoogleAuthProvider()),
+    signInGoogle:    () => signInWithPopup(auth, new GoogleAuthProvider()),
     signInAnonymous: () => signInAnonymously(auth),
-    signOut: () => signOut(auth),
+    signOut:         () => signOut(auth),
     updateName: (displayName) => updateProfile(auth.currentUser, { displayName }),
 
-    // Load user record (returns null if not exists)
+    // Load merged identity + this course's progress
     loadUser: async (uid) => {
-        const snap = await get(ref(db, `users/${uid}`));
-        return snap.exists() ? snap.val() : null;
-    },
+        const [idSnap, courseSnap] = await Promise.all([
+            get(ref(db, userRoot(uid))),
+            get(ref(db, courseRoot(uid)))
+        ]);
+        if (!idSnap.exists() && !courseSnap.exists()) return null;
 
-    // Save / merge user record
-    saveUser: (uid, data) => {
-        return update(ref(db, `users/${uid}`), {
-            ...data,
-            lastSeen: serverTimestamp()
-        });
-    },
+        // Shape the result so existing app code keeps working.
+        const identity = idSnap.exists() ? idSnap.val() : {};
+        const courseData = courseSnap.exists() ? courseSnap.val() : {};
 
-    // Initialize a new user record
-    initUser: (uid, profile) => {
-        return set(ref(db, `users/${uid}`), {
+        // Strip nested children that already exist on identity
+        const merged = {
             uid,
-            email: profile.email || "",
+            displayName: identity.displayName || courseData.displayName || "",
+            email:       identity.email || "",
+            photoURL:    identity.photoURL || "",
+            createdAt:   identity.createdAt,
+            lastSeen:    identity.lastSeen,
+            ...courseData                               // course-specific progress
+        };
+        return merged;
+    },
+
+    // Split incoming partial save into identity vs course-progress writes.
+    // Callers can keep passing a flat object — we route the fields correctly.
+    saveUser: (uid, data) => {
+        const idPatch = { lastSeen: serverTimestamp() };
+        const coursePatch = {};
+
+        Object.keys(data || {}).forEach((k) => {
+            if (IDENTITY_FIELDS.includes(k)) {
+                idPatch[k] = data[k];
+            } else if (PROGRESS_FIELDS.includes(k)) {
+                coursePatch[k] = data[k];
+            } else {
+                // Unknown field — default to course bucket so progress stays scoped
+                coursePatch[k] = data[k];
+            }
+        });
+
+        const writes = [update(ref(db, userRoot(uid)), idPatch)];
+        if (Object.keys(coursePatch).length > 0) {
+            coursePatch.course = COURSE_ID; // tag every write
+            writes.push(update(ref(db, courseRoot(uid)), coursePatch));
+        }
+        return Promise.all(writes);
+    },
+
+    // Initialize identity + this course's empty progress
+    initUser: async (uid, profile) => {
+        // Identity (only writes if not already there)
+        await update(ref(db, userRoot(uid)), {
+            uid,
+            email:       profile.email || "",
             displayName: profile.displayName || "Student",
-            photoURL: profile.photoURL || "",
+            photoURL:    profile.photoURL || "",
+            createdAt:   serverTimestamp(),
+            lastSeen:    serverTimestamp()
+        });
+        // Course-specific blank progress
+        await set(ref(db, courseRoot(uid)), {
             course: COURSE_ID,
             xp: 0,
             level: 1,
             badges: [],
             completedSections: [],
             completedChallenges: [],
+            viewedChallengeSolutions: [],
             codeRuns: 0,
             labsCompleted: 0,
-            createdAt: serverTimestamp(),
-            lastSeen: serverTimestamp()
+            createdAt: serverTimestamp()
         });
     },
 
-    // Real-time leaderboard subscription.
-    // We listen on the entire /users path (not orderByChild) so that records
-    // missing/null xp still appear. Sort + slice happen client-side.
+    // One-time migration: if a user has legacy top-level progress fields
+    // (xp, badges, etc. directly on /users/{uid}), move them into
+    // /users/{uid}/courses/{courseId}/ so each course is isolated.
+    migrateLegacyProgress: async (uid) => {
+        const snap = await get(ref(db, userRoot(uid)));
+        if (!snap.exists()) return false;
+        const root = snap.val();
+        const hasLegacy = PROGRESS_FIELDS.some((f) => root[f] !== undefined);
+        if (!hasLegacy) return false;
+
+        // Has legacy data. Assume it belongs to whichever course matches `root.course`,
+        // OR if absent, pick the current course.
+        const targetCourse = (root.course && typeof root.course === 'string') ? root.course : COURSE_ID;
+        const targetPath = `users/${uid}/courses/${targetCourse}`;
+
+        const legacy = {};
+        PROGRESS_FIELDS.forEach((f) => {
+            if (root[f] !== undefined) legacy[f] = root[f];
+        });
+        // Preserve session/editor/chat where they previously lived
+        if (root.lastSession)  legacy.lastSession  = root.lastSession;
+        if (root.editorState)  legacy.editorState  = root.editorState;
+        if (root.chatHistory)  legacy.chatHistory  = root.chatHistory;
+
+        // Merge into the course bucket (don't blow away anything that's already there)
+        const courseSnap = await get(ref(db, targetPath));
+        const existing = courseSnap.exists() ? courseSnap.val() : {};
+        await set(ref(db, targetPath), { ...existing, ...legacy });
+
+        // Wipe the legacy top-level fields
+        const cleanup = {};
+        PROGRESS_FIELDS.forEach((f) => { if (root[f] !== undefined) cleanup[f] = null; });
+        if (root.lastSession)  cleanup.lastSession  = null;
+        if (root.editorState)  cleanup.editorState  = null;
+        if (root.chatHistory)  cleanup.chatHistory  = null;
+        await update(ref(db, userRoot(uid)), cleanup);
+
+        console.info(`Migrated legacy progress to /courses/${targetCourse} for uid ${uid}`);
+        return true;
+    },
+
+    // Real-time leaderboard subscription — only this course's students
     subscribeLeaderboard: (limit, cb) => {
         return onValue(ref(db, "users"), (snap) => {
             const list = [];
             snap.forEach((child) => {
-                const val = child.val() || {};
-                // Ensure required fields have safe defaults
+                const u = child.val() || {};
+                const courseProgress = u.courses && u.courses[COURSE_ID];
+                if (!courseProgress) return; // user hasn't engaged with this course yet
                 list.push({
-                    uid: val.uid || child.key,
-                    displayName: val.displayName || (val.email ? val.email.split('@')[0] : 'Anonymous'),
-                    xp: typeof val.xp === 'number' ? val.xp : 0,
-                    level: val.level || 1,
-                    badges: val.badges || [],
-                    course: val.course || ''
+                    uid: child.key,
+                    displayName: u.displayName || (u.email ? u.email.split('@')[0] : 'Anonymous'),
+                    xp:    typeof courseProgress.xp === 'number' ? courseProgress.xp : 0,
+                    level: courseProgress.level || 1,
+                    badges: courseProgress.badges || [],
+                    course: COURSE_ID
                 });
             });
             list.sort((a, b) => b.xp - a.xp);
@@ -128,13 +226,9 @@ window.fbHelpers = {
     },
 
     // ===== ADMIN =====
-
-    // Check whether the currently signed-in user is in /admins/{uid}
     isAdmin: async (uid) => {
         try {
             const snap = await get(ref(db, `admins/${uid}`));
-            // Accept any truthy value (true, "true", 1, etc.) — admins added
-            // manually via the console sometimes get a string by accident.
             return snap.exists() && (snap.val() === true || snap.val() === 'true' || snap.val() === 1);
         } catch (e) {
             console.warn("isAdmin check failed:", e && e.message);
@@ -142,21 +236,39 @@ window.fbHelpers = {
         }
     },
 
-    // List every user record (admin only — fails silently for non-admins)
+    // List every user record — flatten into a per-course view
     listAllUsers: async () => {
         const snap = await get(ref(db, "users"));
         if (!snap.exists()) return [];
         const list = [];
         snap.forEach((child) => {
-            const v = child.val() || {};
-            list.push({ uid: child.key, ...v });
+            const u = child.val() || {};
+            const courseProgress = (u.courses && u.courses[COURSE_ID]) || {};
+            list.push({
+                uid: child.key,
+                displayName: u.displayName || "",
+                email:       u.email || "",
+                photoURL:    u.photoURL || "",
+                course:      COURSE_ID,
+                xp:                       courseProgress.xp || 0,
+                level:                    courseProgress.level || 1,
+                badges:                   courseProgress.badges || [],
+                completedSections:        courseProgress.completedSections || [],
+                completedChallenges:      courseProgress.completedChallenges || [],
+                viewedChallengeSolutions: courseProgress.viewedChallengeSolutions || [],
+                codeRuns:                 courseProgress.codeRuns || 0,
+                labsCompleted:            courseProgress.labsCompleted || 0,
+                createdAt: u.createdAt,
+                lastSeen:  u.lastSeen
+            });
         });
         return list;
     },
 
-    // Reset a user's progress to zero — keeps their auth record + display name
-    resetUserProgress: async (uid) => {
-        return update(ref(db, `users/${uid}`), {
+    // Reset a user's progress *for this course only*
+    resetUserProgress: (uid) => {
+        return set(ref(db, courseRoot(uid)), {
+            course: COURSE_ID,
             xp: 0,
             level: 1,
             badges: [],
@@ -168,50 +280,49 @@ window.fbHelpers = {
         });
     },
 
-    // Delete a user's record entirely — removes them from leaderboard.
-    // Note: their Firebase Auth account is NOT deleted by this (browser SDK
-    // can't delete other users). Use the Firebase Console for that.
+    // Delete this course's progress for a user — keeps their identity + other courses
     deleteUserRecord: (uid) => {
-        return set(ref(db, `users/${uid}`), null);
+        return set(ref(db, courseRoot(uid)), null);
     },
 
-    // Get a single user's full record
     getUser: async (uid) => {
-        const snap = await get(ref(db, `users/${uid}`));
-        return snap.exists() ? snap.val() : null;
+        const [idSnap, courseSnap] = await Promise.all([
+            get(ref(db, userRoot(uid))),
+            get(ref(db, courseRoot(uid)))
+        ]);
+        if (!idSnap.exists() && !courseSnap.exists()) return null;
+        return {
+            ...(idSnap.exists() ? idSnap.val() : {}),
+            ...(courseSnap.exists() ? courseSnap.val() : {})
+        };
     },
 
-    // ===== SESSION PERSISTENCE =====
-
-    // Save the user's "where they are" — last module/section
+    // ===== SESSION PERSISTENCE — scoped under the course bucket =====
     saveLastSession: (uid, payload) => {
-        return update(ref(db, `users/${uid}/lastSession`), {
+        return update(ref(db, `${courseRoot(uid)}/lastSession`), {
             ...payload,
             updatedAt: serverTimestamp()
         });
     },
 
-    // Save (or replace) the editor code for a single section
     saveEditorState: (uid, sectionId, code) => {
-        return set(ref(db, `users/${uid}/editorState/${sectionId}`), {
+        return set(ref(db, `${courseRoot(uid)}/editorState/${sectionId}`), {
             code,
             updatedAt: serverTimestamp()
         });
     },
 
-    // Save chat history for a section (cap at N messages handled by caller)
     saveChatHistory: (uid, sectionId, messages) => {
-        return set(ref(db, `users/${uid}/chatHistory/${sectionId}`), {
+        return set(ref(db, `${courseRoot(uid)}/chatHistory/${sectionId}`), {
             messages,
             updatedAt: serverTimestamp()
         });
     },
 
-    // Pull editor state + chat history during sign-in hydration
     loadEditorAndChat: async (uid) => {
         const [edSnap, chatSnap] = await Promise.all([
-            get(ref(db, `users/${uid}/editorState`)),
-            get(ref(db, `users/${uid}/chatHistory`))
+            get(ref(db, `${courseRoot(uid)}/editorState`)),
+            get(ref(db, `${courseRoot(uid)}/chatHistory`))
         ]);
         return {
             editorState: edSnap.exists() ? edSnap.val() : {},
@@ -220,5 +331,4 @@ window.fbHelpers = {
     }
 };
 
-// Notify app.js that Firebase is ready
 window.dispatchEvent(new Event("firebase-ready"));

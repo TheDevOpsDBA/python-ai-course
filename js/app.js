@@ -51,6 +51,11 @@ const BADGES = [
     { id: "champion", name: "Course Champion", icon: "🏆", desc: "Complete all modules" }
 ];
 
+function getProgressKey() {
+    const cid = (window.fbHelpers && window.fbHelpers.COURSE_ID) || 'default';
+    return 'labProgress.' + cid;
+}
+
 function getProgress() {
     const defaults = {
         xp: 0, level: 1, streak: { current: 0, lastDate: "", best: 0 },
@@ -59,14 +64,24 @@ function getProgress() {
         "userName": localStorage.getItem('labUserName') || "Student"
     };
     try {
-        const saved = localStorage.getItem("pythonLabProgress");
+        const key = getProgressKey();
+        let saved = localStorage.getItem(key);
+        // One-time migration of the old non-namespaced key
+        if (!saved) {
+            const legacy = localStorage.getItem("pythonLabProgress");
+            if (legacy) {
+                saved = legacy;
+                localStorage.setItem(key, legacy);
+                localStorage.removeItem("pythonLabProgress");
+            }
+        }
         if (saved) return { ...defaults, ...JSON.parse(saved) };
     } catch (e) {}
     return defaults;
 }
 
 function saveProgress(progress) {
-    localStorage.setItem("pythonLabProgress", JSON.stringify(progress));
+    localStorage.setItem(getProgressKey(), JSON.stringify(progress));
     syncProgressToCloud(progress);
 }
 
@@ -600,6 +615,12 @@ function bootAuth() {
 
             // Hydrate from cloud if record exists, else create one
             try {
+                // One-time migration of pre-multi-course schema
+                if (window.fbHelpers.migrateLegacyProgress) {
+                    try { await window.fbHelpers.migrateLegacyProgress(user.uid); } catch (mErr) {
+                        console.warn("Legacy progress migration skipped:", mErr);
+                    }
+                }
                 const cloud = await window.fbHelpers.loadUser(user.uid);
                 if (cloud) {
                     mergeCloudIntoLocal(cloud);
@@ -652,7 +673,7 @@ function mergeCloudIntoLocal(cloud) {
         codeRuns: Math.max(local.codeRuns || 0, cloud.codeRuns || 0),
         labsCompleted: Math.max(local.labsCompleted || 0, cloud.labsCompleted || 0)
     };
-    localStorage.setItem("pythonLabProgress", JSON.stringify(merged));
+    localStorage.setItem(getProgressKey(), JSON.stringify(merged));
 
     const localCh = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
     const cloudCh = cloud.completedChallenges || [];

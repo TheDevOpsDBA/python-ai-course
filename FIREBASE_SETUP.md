@@ -38,26 +38,32 @@ In the Realtime Database **Rules** tab, paste:
       ".read": "auth != null",
       "$uid": {
         ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
-        ".validate": "newData.hasChildren(['displayName']) || newData.val() === null",
-        "uid":               { ".validate": "newData.isString()" },
-        "displayName":       { ".validate": "newData.isString() && newData.val().length <= 50" },
-        "email":             { ".validate": "newData.isString()" },
-        "photoURL":          { ".validate": "newData.isString()" },
-        "course":            { ".validate": "newData.isString()" },
-        "xp":                { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
-        "level":             { ".validate": "newData.isNumber()" },
-        "badges":            { ".validate": "newData.hasChildren() || newData.val() === null" },
-        "completedSections": { ".validate": "newData.hasChildren() || newData.val() === null" },
-        "completedChallenges": { ".validate": "newData.hasChildren() || newData.val() === null" },
-        "viewedChallengeSolutions": { ".validate": "newData.hasChildren() || newData.val() === null" },
-        "codeRuns":          { ".validate": "newData.isNumber()" },
-        "labsCompleted":     { ".validate": "newData.isNumber()" },
-        "createdAt":         { ".validate": true },
-        "lastSeen":          { ".validate": true },
-        "lastSession":       { ".validate": true },
-        "editorState":       { ".validate": true },
-        "chatHistory":       { ".validate": true },
-        "$other":            { ".validate": false }
+        "uid":         { ".validate": "newData.isString()" },
+        "displayName": { ".validate": "newData.isString() && newData.val().length <= 50" },
+        "email":       { ".validate": "newData.isString()" },
+        "photoURL":    { ".validate": "newData.isString()" },
+        "createdAt":   { ".validate": true },
+        "lastSeen":    { ".validate": true },
+        "courses": {
+          "$courseId": {
+            ".validate": "$courseId.matches(/^[a-z0-9-]+$/)",
+            "course":            { ".validate": "newData.isString()" },
+            "xp":                { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "level":             { ".validate": "newData.isNumber()" },
+            "badges":                   { ".validate": "newData.hasChildren() || newData.val() === null" },
+            "completedSections":        { ".validate": "newData.hasChildren() || newData.val() === null" },
+            "completedChallenges":      { ".validate": "newData.hasChildren() || newData.val() === null" },
+            "viewedChallengeSolutions": { ".validate": "newData.hasChildren() || newData.val() === null" },
+            "codeRuns":      { ".validate": "newData.isNumber()" },
+            "labsCompleted": { ".validate": "newData.isNumber()" },
+            "createdAt":     { ".validate": true },
+            "lastSession":   { ".validate": true },
+            "editorState":   { ".validate": true },
+            "chatHistory":   { ".validate": true },
+            "$other":        { ".validate": false }
+          }
+        },
+        "$other":      { ".validate": false }
       }
     }
   }
