@@ -602,32 +602,52 @@ function bootAuth() {
     firebaseReady = true;
     window.fbHelpers.onAuthStateChanged(async (user) => {
         if (user) {
-            // Signed in
-            currentUser = {
-                uid: user.uid,
-                displayName: user.displayName || localStorage.getItem('labUserName') || (user.email ? user.email.split('@')[0] : 'Student'),
-                email: user.email || "",
-                isGuest: user.isAnonymous
-            };
-            localStorage.setItem('labUserName', currentUser.displayName);
-
-            // Hydrate from cloud if record exists, else create one
+            // Pull the cloud record FIRST so a user's custom display name (set via
+            // the rename dialog) wins over whatever Google's profile says today.
+            let cloud = null;
             try {
-                // One-time migration of pre-multi-course schema
                 if (window.fbHelpers.migrateLegacyProgress) {
                     try { await window.fbHelpers.migrateLegacyProgress(user.uid); } catch (mErr) {
                         console.warn("Legacy progress migration skipped:", mErr);
                     }
                 }
-                const cloud = await window.fbHelpers.loadUser(user.uid);
+                cloud = await window.fbHelpers.loadUser(user.uid);
+            } catch (e) {
+                console.warn("Auth hydrate failed:", e);
+            }
+
+            const cloudName  = cloud && cloud.displayName ? cloud.displayName.trim() : "";
+            const localName  = (localStorage.getItem('labUserName') || "").trim();
+            const googleName = (user.displayName || "").trim();
+            // Source-of-truth order: cloud (custom name) → localStorage → Google → email prefix
+            const preferredName = cloudName
+                || localName
+                || googleName
+                || (user.email ? user.email.split('@')[0] : 'Student');
+
+            currentUser = {
+                uid: user.uid,
+                displayName: preferredName,
+                email: user.email || "",
+                isGuest: user.isAnonymous
+            };
+            localStorage.setItem('labUserName', preferredName);
+
+            try {
                 if (cloud) {
                     mergeCloudIntoLocal(cloud);
                 } else {
                     await window.fbHelpers.initUser(user.uid, {
                         email: currentUser.email,
-                        displayName: currentUser.displayName,
+                        displayName: preferredName,
                         photoURL: user.photoURL || ""
                     });
+                }
+
+                // If the user has a custom name but it's not yet on the cloud (e.g. they
+                // renamed themselves while offline), persist it now so future devices see it.
+                if (cloud && cloudName !== preferredName) {
+                    window.fbHelpers.saveUser(user.uid, { displayName: preferredName }).catch(() => {});
                 }
 
                 // Pull editor + chat history into localStorage
@@ -681,7 +701,9 @@ function mergeCloudIntoLocal(cloud) {
     const cloudViewed = cloud.viewedChallengeSolutions || [];
     localStorage.setItem('viewedChallengeSolutions', JSON.stringify(Array.from(new Set([...localViewed, ...cloudViewed]))));
 
-    if (cloud.displayName) localStorage.setItem('labUserName', cloud.displayName);
+    // Cloud's display name might be older than the in-memory current name —
+    // bootAuth has already chosen the correct one. Don't overwrite it.
+    if (cloud.displayName && !currentUser) localStorage.setItem('labUserName', cloud.displayName);
 
     // Hydrate last-session pointer if it's newer than local
     if (cloud.lastSession && cloud.lastSession.updatedAt) {
