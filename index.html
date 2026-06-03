@@ -16,8 +16,15 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
 </head>
 <body>
 
+<!-- Boot splash — shown until we know whether the user is signed in -->
+<div class="boot-splash" id="bootSplash">
+    <img src="images/Powershell Academy Logo 300-300.png" alt="" class="boot-logo">
+    <div class="boot-spinner"></div>
+    <div class="boot-text">Loading lab…</div>
+</div>
+
 <!-- Login / Sign-up Screen -->
-<div class="auth-overlay" id="authOverlay">
+<div class="auth-overlay" id="authOverlay" style="display:none;">
     <div class="auth-card">
         <img src="images/Powershell Academy Logo 300-300.png" alt="PowerShell Academy" class="auth-logo">
         <h2 class="auth-title">Python for AI Lab</h2>

@@ -576,6 +576,7 @@ async function initializeApp() {
                 booted = true;
                 console.warn("Firebase did not load — running in local-only mode.");
                 hideAuthScreen();
+                hideBootSplash();
                 if (!localStorage.getItem('labUserName')) localStorage.setItem('labUserName', 'Student');
                 currentUser = { uid: 'local-only', displayName: localStorage.getItem('labUserName'), email: '', isGuest: true };
                 startMainApp();
@@ -624,13 +625,20 @@ function bootAuth() {
             }
 
             hideAuthScreen();
+            hideBootSplash();
             startMainApp();
         } else {
             // Signed out — show login (guest still allowed)
             currentUser = null;
+            hideBootSplash();
             showAuthScreen();
         }
     });
+}
+
+function hideBootSplash() {
+    const s = document.getElementById('bootSplash');
+    if (s) s.style.display = 'none';
 }
 
 // Merge cloud-stored progress into local storage so existing UI keeps working

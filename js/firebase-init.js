@@ -4,6 +4,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import {
     getAuth,
+    setPersistence,
+    browserLocalPersistence,
     onAuthStateChanged,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
@@ -37,6 +39,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+
+// Pin auth state to localStorage so users stay signed in across browser restarts.
+// Without this, Safari (especially on iOS) can fall back to in-memory persistence
+// and force a fresh login on every tab.
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.warn("setPersistence failed (auth will still work, just may not survive restarts):", err);
+});
 
 // Course identifier — different courses share the same Firebase project
 const COURSE_ID = "python-for-ai";
