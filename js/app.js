@@ -9,7 +9,12 @@ let lastRenderedModule = -1;
 let currentUser = null;          // { uid, displayName, email, isGuest }
 let firebaseReady = false;
 let leaderboardUnsubscribe = null;
-let saveTimer = null;            // debounced cloud save
+let saveTimer = null;            // debounced cloud save (progress)
+let editorSaveTimer = null;      // debounced editor save
+let chatSaveTimer = null;        // debounced chat save
+let lastSessionSaveTimer = null; // debounced last-session save
+let chatHistory = [];            // in-memory current section's chat (synced w/ localStorage)
+let cloudHydrated = false;       // becomes true once cloud data has been merged in
 
 // OpenRouter API Configuration
 // Key is injected at deploy time via GitHub Actions
@@ -83,9 +88,216 @@ function syncProgressToCloud(progress) {
             codeRuns: progress.codeRuns || 0,
             labsCompleted: progress.labsCompleted || 0,
             course: window.fbHelpers.COURSE_ID
-        }).catch((err) => console.warn("Cloud sync failed:", err));
+        }).then(() => showSaveStatus('synced')).catch((err) => {
+            console.warn("Cloud sync failed:", err);
+            showSaveStatus('error');
+        });
     }, 1500);
 }
+
+// ============================================================
+// SESSION PERSISTENCE — last position, editor code, chat memory
+// ============================================================
+
+const STORAGE_KEYS = {
+    lastSession: 'pyLab.lastSession',
+    editorPrefix: 'pyLab.editor.',     // + sectionId
+    chatPrefix:   'pyLab.chat.',       // + sectionId
+    resumeShownKey: 'pyLab.resumeShown'
+};
+
+const MAX_CHAT_PER_SECTION = 20;
+const MAX_EDITOR_SECTIONS = 50;
+const RESUME_MAX_AGE_DAYS = 30;
+
+// --- Last session (where the user left off) ---
+function saveLastSession(moduleIdx, sectionIdx) {
+    const payload = {
+        moduleIdx,
+        sectionIdx,
+        moduleId: courseData.modules[moduleIdx] ? courseData.modules[moduleIdx].id : '',
+        sectionId: courseData.modules[moduleIdx] && courseData.modules[moduleIdx].sections[sectionIdx]
+            ? courseData.modules[moduleIdx].sections[sectionIdx].id
+            : '',
+        updatedAt: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEYS.lastSession, JSON.stringify(payload));
+
+    // Debounced cloud sync
+    if (currentUser && !currentUser.isGuest && window.fbHelpers) {
+        clearTimeout(lastSessionSaveTimer);
+        lastSessionSaveTimer = setTimeout(() => {
+            window.fbHelpers.saveLastSession(currentUser.uid, payload).catch(() => {});
+        }, 800);
+    }
+}
+
+function loadLastSession() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEYS.lastSession);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+// --- Editor code (per section) ---
+function saveEditorCode(sectionId, code) {
+    if (!sectionId) return;
+    showSaveStatus('saving');
+    try {
+        localStorage.setItem(STORAGE_KEYS.editorPrefix + sectionId, code);
+    } catch (e) {
+        // Quota exceeded — prune oldest editor entries
+        pruneEditorStorage();
+        try { localStorage.setItem(STORAGE_KEYS.editorPrefix + sectionId, code); } catch (_) {}
+    }
+    showSaveStatus('saved');
+
+    // Debounced cloud sync
+    if (currentUser && !currentUser.isGuest && window.fbHelpers) {
+        clearTimeout(editorSaveTimer);
+        editorSaveTimer = setTimeout(() => {
+            window.fbHelpers.saveEditorState(currentUser.uid, sectionId, code)
+                .then(() => showSaveStatus('synced'))
+                .catch(() => showSaveStatus('error'));
+        }, 2000);
+    }
+}
+
+function loadEditorCode(sectionId) {
+    if (!sectionId) return null;
+    return localStorage.getItem(STORAGE_KEYS.editorPrefix + sectionId);
+}
+
+function pruneEditorStorage() {
+    // Keep at most MAX_EDITOR_SECTIONS most-recently-saved sections
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(STORAGE_KEYS.editorPrefix)) keys.push(k);
+    }
+    if (keys.length <= MAX_EDITOR_SECTIONS) return;
+    // We don't track per-key timestamps separately — just drop the first N keys
+    keys.slice(0, keys.length - MAX_EDITOR_SECTIONS).forEach(k => localStorage.removeItem(k));
+}
+
+// --- Chat history (per section) ---
+function saveChatHistory(sectionId, messages) {
+    if (!sectionId) return;
+    // Cap to last N messages to keep things lean
+    const trimmed = messages.slice(-MAX_CHAT_PER_SECTION);
+    try {
+        localStorage.setItem(STORAGE_KEYS.chatPrefix + sectionId, JSON.stringify(trimmed));
+    } catch (e) {
+        // Storage full — drop the oldest chat entry, retry once
+        const k = findOldestChatKey();
+        if (k) localStorage.removeItem(k);
+        try { localStorage.setItem(STORAGE_KEYS.chatPrefix + sectionId, JSON.stringify(trimmed)); } catch (_) {}
+    }
+
+    if (currentUser && !currentUser.isGuest && window.fbHelpers) {
+        clearTimeout(chatSaveTimer);
+        chatSaveTimer = setTimeout(() => {
+            window.fbHelpers.saveChatHistory(currentUser.uid, sectionId, trimmed)
+                .catch(() => {});
+        }, 2500);
+    }
+}
+
+function loadChatHistory(sectionId) {
+    if (!sectionId) return [];
+    try {
+        const raw = localStorage.getItem(STORAGE_KEYS.chatPrefix + sectionId);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+}
+
+function findOldestChatKey() {
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(STORAGE_KEYS.chatPrefix)) return k;
+    }
+    return null;
+}
+
+// --- Save status pill ---
+function showSaveStatus(state) {
+    const el = document.getElementById('saveStatus');
+    if (!el) return;
+    el.classList.remove('saving', 'saved', 'synced', 'error', 'local');
+    switch (state) {
+        case 'saving': el.classList.add('saving'); el.textContent = '● Saving…'; break;
+        case 'saved':  el.classList.add('saved');  el.textContent = '✓ Saved';    break;
+        case 'synced': el.classList.add('synced'); el.textContent = '☁ Synced';   break;
+        case 'error':  el.classList.add('error');  el.textContent = '⚠ Sync failed'; break;
+        case 'local':  el.classList.add('local');  el.textContent = '✎ Local only'; break;
+        default: el.textContent = '';
+    }
+    if (state === 'saved' || state === 'synced') {
+        clearTimeout(el._fadeTimer);
+        el._fadeTimer = setTimeout(() => {
+            if (currentUser && currentUser.isGuest) showSaveStatus('local');
+            else el.textContent = '';
+        }, 2000);
+    }
+}
+
+function showRestoredIndicator() {
+    const el = document.getElementById('saveStatus');
+    if (!el) return;
+    el.classList.remove('saving', 'saved', 'synced', 'error', 'local');
+    el.classList.add('restored');
+    el.textContent = '↺ Restored your code';
+    clearTimeout(el._fadeTimer);
+    el._fadeTimer = setTimeout(() => {
+        el.classList.remove('restored');
+        if (currentUser && currentUser.isGuest) showSaveStatus('local');
+        else el.textContent = '';
+    }, 2500);
+}
+
+// --- Resume banner ---
+function maybeShowResumeBanner() {
+    const last = loadLastSession();
+    if (!last || !last.updatedAt) return;
+    if (Date.now() - last.updatedAt > RESUME_MAX_AGE_DAYS * 86400 * 1000) return;
+
+    // Only show once per browser session
+    if (sessionStorage.getItem(STORAGE_KEYS.resumeShownKey)) return;
+    sessionStorage.setItem(STORAGE_KEYS.resumeShownKey, '1');
+
+    // If we're already on the same module/section the user left off, skip
+    if (last.moduleIdx === currentModule && last.sectionIdx === currentSection) return;
+
+    const mod = courseData.modules[last.moduleIdx];
+    if (!mod) return;
+    const sec = mod.sections[last.sectionIdx];
+    if (!sec) return;
+
+    const banner = document.getElementById('resumeBanner');
+    if (!banner) return;
+    document.getElementById('resumeText').innerHTML =
+        '👋 Welcome back! Resume from <strong>' + mod.title + '</strong> &raquo; <strong>' + sec.title + '</strong>?';
+    banner.style.display = 'flex';
+
+    document.getElementById('resumeYes').onclick = () => {
+        currentModule = last.moduleIdx;
+        currentSection = last.sectionIdx;
+        loadModulesPreserveSelection();
+        banner.style.display = 'none';
+    };
+    document.getElementById('resumeNo').onclick = () => {
+        banner.style.display = 'none';
+    };
+}
+
+function loadModulesPreserveSelection() {
+    document.getElementById('moduleSelect').value = currentModule;
+    loadSections();
+}
+
+// ============================================================
+// END SESSION PERSISTENCE
+// ============================================================
 
 function addXP(amount, label) {
     const progress = getProgress();
@@ -336,6 +548,19 @@ async function initializeApp() {
         }
     );
 
+    // Auto-save editor contents on every change (debounced via showSaveStatus)
+    let editorAutoSaveTimer = null;
+    editor.on("change", () => {
+        clearTimeout(editorAutoSaveTimer);
+        editorAutoSaveTimer = setTimeout(() => {
+            const section = courseData.modules[currentModule] &&
+                courseData.modules[currentModule].sections[currentSection];
+            if (section && section.id) {
+                saveEditorCode(section.id, editor.getValue());
+            }
+        }, 600);
+    });
+
     pyodide = await loadPyodide();
 
     // Wait for Firebase to be ready, then check auth state.
@@ -384,6 +609,16 @@ function bootAuth() {
                         photoURL: user.photoURL || ""
                     });
                 }
+
+                // Pull editor + chat history into localStorage
+                try {
+                    const ec = await window.fbHelpers.loadEditorAndChat(user.uid);
+                    hydrateEditorAndChatFromCloud(ec);
+                } catch (e2) {
+                    console.warn("Editor/chat hydrate failed:", e2);
+                }
+
+                cloudHydrated = true;
             } catch (e) {
                 console.warn("Auth hydrate failed:", e);
             }
@@ -420,12 +655,67 @@ function mergeCloudIntoLocal(cloud) {
     localStorage.setItem('viewedChallengeSolutions', JSON.stringify(Array.from(new Set([...localViewed, ...cloudViewed]))));
 
     if (cloud.displayName) localStorage.setItem('labUserName', cloud.displayName);
+
+    // Hydrate last-session pointer if it's newer than local
+    if (cloud.lastSession && cloud.lastSession.updatedAt) {
+        const localLast = loadLastSession();
+        const localTs = localLast && localLast.updatedAt ? localLast.updatedAt : 0;
+        const cloudTs = typeof cloud.lastSession.updatedAt === 'number'
+            ? cloud.lastSession.updatedAt
+            : 0;
+        if (cloudTs > localTs) {
+            localStorage.setItem(STORAGE_KEYS.lastSession, JSON.stringify({
+                moduleIdx: cloud.lastSession.moduleIdx || 0,
+                sectionIdx: cloud.lastSession.sectionIdx || 0,
+                moduleId: cloud.lastSession.moduleId || '',
+                sectionId: cloud.lastSession.sectionId || '',
+                updatedAt: cloudTs
+            }));
+        }
+    }
+}
+
+// Pull every section's editor code + chat into localStorage so opening a section
+// instantly shows what the user last had — no extra round-trips needed.
+function hydrateEditorAndChatFromCloud({ editorState, chatHistory: chatMap }) {
+    if (editorState && typeof editorState === 'object') {
+        Object.keys(editorState).forEach(sectionId => {
+            const entry = editorState[sectionId];
+            if (entry && typeof entry.code === 'string') {
+                try { localStorage.setItem(STORAGE_KEYS.editorPrefix + sectionId, entry.code); } catch (_) {}
+            }
+        });
+    }
+    if (chatMap && typeof chatMap === 'object') {
+        Object.keys(chatMap).forEach(sectionId => {
+            const entry = chatMap[sectionId];
+            if (entry && Array.isArray(entry.messages)) {
+                try { localStorage.setItem(STORAGE_KEYS.chatPrefix + sectionId, JSON.stringify(entry.messages)); } catch (_) {}
+            }
+        });
+    }
 }
 
 function startMainApp() {
+    // Honour a previously saved last position (cloud-merged or local-only)
+    const last = loadLastSession();
+    if (last && typeof last.moduleIdx === 'number') {
+        const m = courseData.modules[last.moduleIdx];
+        if (m && m.sections[last.sectionIdx]) {
+            currentModule = last.moduleIdx;
+            currentSection = last.sectionIdx;
+        }
+    }
+
     loadModules();
     updateGamificationUI();
     updateProgress();
+
+    // Surface the resume banner shortly after first render
+    setTimeout(maybeShowResumeBanner, 400);
+
+    // Initial save status pill state
+    if (currentUser && currentUser.isGuest) showSaveStatus('local');
 }
 
 function showAuthScreen() {
@@ -649,6 +939,20 @@ function renderSection() {
 
         editor.setValue("# No examples available");
     }
+
+    // === SESSION PERSISTENCE: restore saved code if present ===
+    const savedCode = loadEditorCode(section.id);
+    if (savedCode != null && savedCode.length > 0) {
+        editor.setValue(savedCode);
+        showRestoredIndicator();
+    }
+
+    // Restore chat history for this section
+    restoreChatHistory(section.id);
+
+    // Save current position (debounced inside)
+    saveLastSession(currentModule, currentSection);
+    // === END SESSION PERSISTENCE ===
 
     // Pulse toggle when section has code
     const toggleBtn = document.getElementById('panelToggle');
@@ -1058,7 +1362,7 @@ function toggleRightPanel() {
 
 // ===== AI Chat Functions =====
 
-function addChatMessage(text, role) {
+function addChatMessage(text, role, opts) {
     const messages = document.getElementById("chatMessages");
     const msg = document.createElement("div");
     const isUser = role.includes("user");
@@ -1076,7 +1380,53 @@ function addChatMessage(text, role) {
     msg.appendChild(bubble);
     messages.appendChild(msg);
     messages.scrollTop = messages.scrollHeight;
+
+    // Persist message unless caller opted out (e.g. transient "thinking…" indicator)
+    if (!(opts && opts.transient) && !role.includes("loading")) {
+        const sec = courseData.modules[currentModule] &&
+            courseData.modules[currentModule].sections[currentSection];
+        if (sec && sec.id) {
+            chatHistory.push({ role: isUser ? "user" : "assistant", text, ts: Date.now() });
+            // Trim in-memory copy
+            if (chatHistory.length > MAX_CHAT_PER_SECTION) {
+                chatHistory = chatHistory.slice(-MAX_CHAT_PER_SECTION);
+            }
+            saveChatHistory(sec.id, chatHistory);
+        }
+    }
+
     return msg;
+}
+
+function restoreChatHistory(sectionId) {
+    const messages = document.getElementById("chatMessages");
+    if (!messages) return;
+    // Reset to the welcome state
+    messages.innerHTML =
+        '<div class="ai-msg assistant">' +
+            '<div class="ai-msg-avatar">🤖</div>' +
+            '<div class="ai-msg-bubble">Hey! I\'m your AI mentor for this module. I can see your code and output — ask me anything!</div>' +
+        '</div>';
+
+    chatHistory = loadChatHistory(sectionId);
+    if (!chatHistory || chatHistory.length === 0) return;
+
+    // Re-render persisted messages without re-saving
+    chatHistory.forEach(m => {
+        const wrap = document.createElement("div");
+        const isUser = m.role === "user";
+        wrap.className = "ai-msg " + (isUser ? "user" : "assistant");
+        const av = document.createElement("div");
+        av.className = "ai-msg-avatar";
+        av.textContent = isUser ? "👤" : "🤖";
+        const b = document.createElement("div");
+        b.className = "ai-msg-bubble";
+        b.innerHTML = m.text;
+        wrap.appendChild(av);
+        wrap.appendChild(b);
+        messages.appendChild(wrap);
+    });
+    messages.scrollTop = messages.scrollHeight;
 }
 
 async function sendChat() {
@@ -1098,7 +1448,7 @@ async function sendChat() {
         }
     }
 
-    const loadingMsg = addChatMessage('<span class="typing-dots"><span>●</span><span>●</span><span>●</span></span>', "bot loading");
+    const loadingMsg = addChatMessage('<span class="typing-dots"><span>●</span><span>●</span><span>●</span></span>', "bot loading", { transient: true });
 
     const code = editor ? editor.getValue() : "";
     const section = courseData.modules[currentModule].sections[currentSection];

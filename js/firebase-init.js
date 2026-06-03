@@ -165,6 +165,44 @@ window.fbHelpers = {
     getUser: async (uid) => {
         const snap = await get(ref(db, `users/${uid}`));
         return snap.exists() ? snap.val() : null;
+    },
+
+    // ===== SESSION PERSISTENCE =====
+
+    // Save the user's "where they are" — last module/section
+    saveLastSession: (uid, payload) => {
+        return update(ref(db, `users/${uid}/lastSession`), {
+            ...payload,
+            updatedAt: serverTimestamp()
+        });
+    },
+
+    // Save (or replace) the editor code for a single section
+    saveEditorState: (uid, sectionId, code) => {
+        return set(ref(db, `users/${uid}/editorState/${sectionId}`), {
+            code,
+            updatedAt: serverTimestamp()
+        });
+    },
+
+    // Save chat history for a section (cap at N messages handled by caller)
+    saveChatHistory: (uid, sectionId, messages) => {
+        return set(ref(db, `users/${uid}/chatHistory/${sectionId}`), {
+            messages,
+            updatedAt: serverTimestamp()
+        });
+    },
+
+    // Pull editor state + chat history during sign-in hydration
+    loadEditorAndChat: async (uid) => {
+        const [edSnap, chatSnap] = await Promise.all([
+            get(ref(db, `users/${uid}/editorState`)),
+            get(ref(db, `users/${uid}/chatHistory`))
+        ]);
+        return {
+            editorState: edSnap.exists() ? edSnap.val() : {},
+            chatHistory: chatSnap.exists() ? chatSnap.val() : {}
+        };
     }
 };
 

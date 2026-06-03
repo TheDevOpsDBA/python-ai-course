@@ -54,6 +54,9 @@ In the Realtime Database **Rules** tab, paste:
         "labsCompleted":     { ".validate": "newData.isNumber()" },
         "createdAt":         { ".validate": true },
         "lastSeen":          { ".validate": true },
+        "lastSession":       { ".validate": true },
+        "editorState":       { ".validate": true },
+        "chatHistory":       { ".validate": true },
         "$other":            { ".validate": false }
       }
     }
@@ -107,3 +110,44 @@ Without this, Google sign-in will fail on the production domain.
 - Progress (XP, badges, completed sections/challenges) is debounced (1.5 s) and synced
   to `users/{uid}` after every save.
 - The leaderboard subscribes to `users` ordered by `xp` (top 50) and updates live.
+
+
+## Session persistence — what gets saved where
+
+Below is the full data model the app writes per user.
+
+```
+/users/{uid}
+  ├── displayName, email, photoURL, course      // identity
+  ├── xp, level, badges                         // gamification
+  ├── completedSections[]                       // section IDs
+  ├── completedChallenges[]                     // challenge IDs (passed)
+  ├── viewedChallengeSolutions[]                // challenge IDs (gave up)
+  ├── codeRuns, labsCompleted                   // counters
+  ├── createdAt, lastSeen                       // timestamps
+  ├── lastSession                               // resume pointer
+  │     ├── moduleIdx, sectionIdx
+  │     ├── moduleId, sectionId
+  │     └── updatedAt
+  ├── editorState/{sectionId}                   // per-section code
+  │     ├── code
+  │     └── updatedAt
+  └── chatHistory/{sectionId}                   // per-section AI chat
+        ├── messages[] { role, text, ts }
+        └── updatedAt
+```
+
+### Save cadence
+
+| Field | Trigger | Local | Cloud |
+|---|---|---|---|
+| `xp`, `badges`, etc. | any progress event | instant | debounced 1.5 s |
+| `lastSession` | section change | instant | debounced 0.8 s |
+| `editorState/{sectionId}` | CodeMirror change (600 ms idle) | instant | debounced 2.0 s |
+| `chatHistory/{sectionId}` | each new message | instant | debounced 2.5 s |
+
+### Recovery flow
+
+1. On sign-in, the client fetches `users/{uid}` and merges into localStorage.
+2. It also pulls `editorState` and `chatHistory` so any section opens with the user's last code/conversation pre-loaded.
+3. If `lastSession.updatedAt` is within 30 days and on a different position than where the user is now, a one-time "Welcome back" banner offers a one-click resume.

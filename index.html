@@ -62,11 +62,22 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
         </div>
         <span class="xp-text" id="xpText">0 XP</span>
         <span class="streak-display" id="streakDisplay" title="Daily Streak">🔥0</span>
+        <span class="save-status" id="saveStatus" title="Auto-save status"></span>
         <button class="badge-btn" onclick="showBadges()" title="View Badges">🏅</button>
         <button class="leaderboard-btn" onclick="openLeaderboard()" title="Leaderboard">🏆 Leaderboard</button>
         <button class="signout-btn" onclick="authSignOut()" title="Sign out">⎋ Logout</button>
     </div>
 </nav>
+
+<!-- Resume banner — shows when returning to the lab on a different section -->
+<div class="resume-banner" id="resumeBanner" style="display:none;">
+    <span class="resume-icon">↺</span>
+    <span class="resume-text" id="resumeText"></span>
+    <div class="resume-actions">
+        <button class="resume-yes" id="resumeYes">Continue</button>
+        <button class="resume-no"  id="resumeNo">Start fresh</button>
+    </div>
+</div>
 
 <div class="toolbar">
     <select id="moduleSelect"></select>
