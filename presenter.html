@@ -45,6 +45,7 @@
     <button onclick="nextSection()">Next →</button>
     <span class="presenter-section-indicator" id="sectionIndicator">1 / 1</span>
     <span class="presenter-progress" id="presenterProgress">Section 1 of N</span>
+    <button class="admin-toolbar-btn" onclick="openAdminPanel()" id="adminBtn" style="display:none;">👥 Manage Users</button>
 </div>
 
 <div class="presenter-main">
@@ -101,6 +102,52 @@
 
 </div>
 
+<!-- Admin sign-in (shown if not yet authenticated) -->
+<div class="admin-auth-overlay" id="adminAuthOverlay" style="display:none;">
+    <div class="admin-auth-card">
+        <h3>👥 Presenter Admin Sign-In</h3>
+        <p class="admin-auth-sub">Sign in with your admin account to manage students. Your account must be listed in <code>/admins/&lt;uid&gt;</code>.</p>
+        <input type="email" id="adminEmail" placeholder="Email">
+        <input type="password" id="adminPassword" placeholder="Password">
+        <button onclick="adminSignIn()" class="admin-auth-submit">Sign in</button>
+        <button onclick="adminSignInGoogle()" class="admin-auth-google">Sign in with Google</button>
+        <div class="admin-auth-error" id="adminAuthError"></div>
+        <button class="admin-auth-cancel" onclick="closeAdminAuth()">Cancel</button>
+    </div>
+</div>
+
+<!-- Admin user-management panel -->
+<div class="admin-overlay" id="adminOverlay" style="display:none;" onclick="if(event.target===this)closeAdminPanel()">
+    <div class="admin-card">
+        <div class="admin-header">
+            <h3>👥 Manage Students</h3>
+            <span class="admin-subtitle" id="adminSubtitle">Loading…</span>
+            <button class="admin-close" onclick="closeAdminPanel()">✕</button>
+        </div>
+        <div class="admin-toolbar">
+            <input type="text" id="adminSearch" placeholder="🔍 Search by name or email…" oninput="filterAdminUsers()">
+            <button onclick="refreshAdminUsers()" class="admin-refresh-btn">↻ Refresh</button>
+            <a href="https://console.firebase.google.com/project/powershell-academy-labs/authentication/users"
+               target="_blank" class="admin-console-link" title="Delete auth accounts in Firebase Console">
+                🔗 Auth Console
+            </a>
+        </div>
+        <div class="admin-list-header">
+            <span>Name</span>
+            <span>Email</span>
+            <span>XP</span>
+            <span>Lv</span>
+            <span>✓ Sec</span>
+            <span>🏆 Ch</span>
+            <span>Actions</span>
+        </div>
+        <div class="admin-list" id="adminList">
+            <div class="admin-loading">Loading users…</div>
+        </div>
+        <div class="admin-footer" id="adminFooter"></div>
+    </div>
+</div>
+
 <!-- Floating help panel -->
 <div class="presenter-help" id="presenterHelp" style="display:none;" onclick="if(event.target===this)document.getElementById('presenterHelp').style.display='none'">
     <div class="presenter-help-card">
@@ -123,6 +170,7 @@
 
 <script src="data/courses.js"></script>
 <script src="js/diagrams.js"></script>
+<script type="module" src="js/firebase-init.js"></script>
 <script src="js/presenter.js"></script>
 
 </body>

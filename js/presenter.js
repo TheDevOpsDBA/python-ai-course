@@ -534,3 +534,246 @@ function onKey(e) {
 }
 
 window.onload = init;
+
+
+// ============================================================
+// ADMIN — manage student records
+// ============================================================
+
+let adminCurrentUser = null;
+let adminAllUsers = [];
+
+// Wait until Firebase is ready, then check admin status
+function bootAdmin() {
+    if (!window.fbHelpers) return;
+    window.fbHelpers.onAuthStateChanged(async (user) => {
+        if (!user) {
+            adminCurrentUser = null;
+            document.getElementById("adminBtn").style.display = "none";
+            return;
+        }
+        const isAdmin = await window.fbHelpers.isAdmin(user.uid);
+        if (isAdmin) {
+            adminCurrentUser = { uid: user.uid, email: user.email || "", displayName: user.displayName || "Admin" };
+            document.getElementById("adminBtn").style.display = "";
+            document.getElementById("adminBtn").textContent = "👥 Manage Users";
+        } else {
+            // Signed in but not an admin — keep button hidden, but log to console
+            adminCurrentUser = null;
+            document.getElementById("adminBtn").style.display = "";
+            document.getElementById("adminBtn").textContent = "🔒 Admin sign-in";
+        }
+    });
+}
+
+if (window.fbHelpers) {
+    bootAdmin();
+} else {
+    window.addEventListener("firebase-ready", bootAdmin, { once: true });
+}
+
+// === Admin button handler ===
+function openAdminPanel() {
+    if (!adminCurrentUser) {
+        // Show admin sign-in
+        document.getElementById("adminAuthOverlay").style.display = "flex";
+        return;
+    }
+    document.getElementById("adminOverlay").style.display = "flex";
+    refreshAdminUsers();
+}
+
+function closeAdminPanel() {
+    document.getElementById("adminOverlay").style.display = "none";
+}
+
+// === Admin sign-in ===
+async function adminSignIn() {
+    const email = document.getElementById("adminEmail").value.trim();
+    const password = document.getElementById("adminPassword").value;
+    const errorEl = document.getElementById("adminAuthError");
+    errorEl.textContent = "";
+    if (!email || !password) {
+        errorEl.textContent = "Email and password required.";
+        return;
+    }
+    try {
+        await window.fbHelpers.signInEmail(email, password);
+        // bootAdmin's onAuthStateChanged will run and set adminCurrentUser
+        document.getElementById("adminAuthOverlay").style.display = "none";
+        document.getElementById("adminPassword").value = "";
+        // Wait a tick for the admin status to resolve, then open panel
+        setTimeout(() => {
+            if (adminCurrentUser) openAdminPanel();
+            else errorEl.textContent = "Signed in, but you are not in /admins. Add your UID via Firebase Console.";
+        }, 500);
+    } catch (err) {
+        errorEl.textContent = (err && err.code) === "auth/invalid-credential"
+            ? "Wrong email or password."
+            : (err && err.message) || "Sign-in failed.";
+    }
+}
+
+async function adminSignInGoogle() {
+    try {
+        await window.fbHelpers.signInGoogle();
+        document.getElementById("adminAuthOverlay").style.display = "none";
+        setTimeout(() => {
+            if (adminCurrentUser) openAdminPanel();
+            else document.getElementById("adminAuthError").textContent =
+                "Signed in, but you are not in /admins. Add your UID via Firebase Console.";
+        }, 500);
+    } catch (err) {
+        document.getElementById("adminAuthError").textContent = (err && err.message) || "Google sign-in failed.";
+    }
+}
+
+function closeAdminAuth() {
+    document.getElementById("adminAuthOverlay").style.display = "none";
+}
+
+// === User list operations ===
+async function refreshAdminUsers() {
+    const subtitle = document.getElementById("adminSubtitle");
+    const listEl = document.getElementById("adminList");
+    subtitle.textContent = "Loading…";
+    listEl.innerHTML = '<div class="admin-loading">Loading users…</div>';
+
+    try {
+        adminAllUsers = await window.fbHelpers.listAllUsers();
+        adminAllUsers.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+        renderAdminUserList(adminAllUsers);
+        subtitle.textContent = adminAllUsers.length + " students";
+    } catch (err) {
+        listEl.innerHTML = '<div class="admin-loading">Failed to load: ' + (err.message || err) + '</div>';
+        subtitle.textContent = "Error";
+    }
+}
+
+function filterAdminUsers() {
+    const q = document.getElementById("adminSearch").value.trim().toLowerCase();
+    if (!q) return renderAdminUserList(adminAllUsers);
+    const filtered = adminAllUsers.filter(u =>
+        (u.displayName || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q) ||
+        (u.uid || "").toLowerCase().includes(q)
+    );
+    renderAdminUserList(filtered);
+    document.getElementById("adminFooter").textContent =
+        `${filtered.length} of ${adminAllUsers.length} match "${q}"`;
+}
+
+function renderAdminUserList(users) {
+    const listEl = document.getElementById("adminList");
+    if (!users || users.length === 0) {
+        listEl.innerHTML = '<div class="admin-loading">No matching users.</div>';
+        return;
+    }
+    let html = "";
+    users.forEach(u => {
+        const sec = (u.completedSections || []).length;
+        const ch = (u.completedChallenges || []).length;
+        const isMe = adminCurrentUser && u.uid === adminCurrentUser.uid;
+        html += `
+            <div class="admin-row${isMe ? ' me' : ''}" data-uid="${u.uid}">
+                <span class="admin-cell admin-name">${esc(u.displayName || "Anonymous")}${isMe ? ' <em>(you)</em>' : ''}</span>
+                <span class="admin-cell admin-email">${esc(u.email || "—")}</span>
+                <span class="admin-cell admin-xp">${u.xp || 0}</span>
+                <span class="admin-cell">${u.level || 1}</span>
+                <span class="admin-cell">${sec}</span>
+                <span class="admin-cell">${ch}</span>
+                <span class="admin-cell admin-actions">
+                    <button class="admin-action-btn admin-view"   onclick="adminViewUser('${u.uid}')"   title="View details">👁</button>
+                    <button class="admin-action-btn admin-rename" onclick="adminRenameUser('${u.uid}')" title="Rename">✎</button>
+                    <button class="admin-action-btn admin-reset"  onclick="adminResetUser('${u.uid}')"  title="Reset progress (keeps account)">↺</button>
+                    <button class="admin-action-btn admin-delete" onclick="adminDeleteUser('${u.uid}')" title="Delete record (auth account remains)">🗑</button>
+                </span>
+            </div>`;
+    });
+    listEl.innerHTML = html;
+}
+
+function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// === Action handlers ===
+async function adminViewUser(uid) {
+    const u = adminAllUsers.find(x => x.uid === uid) || await window.fbHelpers.getUser(uid);
+    if (!u) return alert("User not found.");
+    const lines = [
+        `Name:           ${u.displayName || "—"}`,
+        `Email:          ${u.email || "—"}`,
+        `UID:            ${u.uid || uid}`,
+        `Course:         ${u.course || "—"}`,
+        `XP:             ${u.xp || 0}`,
+        `Level:          ${u.level || 1}`,
+        `Sections done:  ${(u.completedSections || []).length}`,
+        `Challenges:     ${(u.completedChallenges || []).length} completed, ${(u.viewedChallengeSolutions || []).length} attended`,
+        `Code runs:      ${u.codeRuns || 0}`,
+        `Labs passed:    ${u.labsCompleted || 0}`,
+        `Badges:         ${(u.badges || []).join(", ") || "—"}`
+    ];
+    alert(lines.join("\n"));
+}
+
+async function adminRenameUser(uid) {
+    const u = adminAllUsers.find(x => x.uid === uid);
+    const current = u ? (u.displayName || "") : "";
+    const next = prompt(`Rename student "${current}" to:`, current);
+    if (!next || !next.trim() || next.trim() === current) return;
+    try {
+        await window.fbHelpers.saveUser(uid, { displayName: next.trim() });
+        toast(`Renamed to "${next.trim()}"`);
+        refreshAdminUsers();
+    } catch (err) {
+        alert("Rename failed: " + (err.message || err));
+    }
+}
+
+async function adminResetUser(uid) {
+    const u = adminAllUsers.find(x => x.uid === uid);
+    const name = u ? (u.displayName || u.email || uid) : uid;
+    if (!confirm(`Reset progress for ${name}?\n\nXP, badges, completed sections, and challenges will be cleared.\nTheir sign-in account remains intact.`)) return;
+    try {
+        await window.fbHelpers.resetUserProgress(uid);
+        toast(`Progress reset for ${name}`);
+        refreshAdminUsers();
+    } catch (err) {
+        alert("Reset failed: " + (err.message || err));
+    }
+}
+
+async function adminDeleteUser(uid) {
+    const u = adminAllUsers.find(x => x.uid === uid);
+    const name = u ? (u.displayName || u.email || uid) : uid;
+    if (!confirm(
+        `Delete database record for ${name}?\n\n` +
+        `• Their leaderboard entry and progress will be removed.\n` +
+        `• Their Firebase Auth account is NOT deleted by this — they can sign in again with the same email.\n` +
+        `• To fully delete the account, use the Firebase Console (link in toolbar).\n\n` +
+        `Continue?`
+    )) return;
+
+    try {
+        await window.fbHelpers.deleteUserRecord(uid);
+        toast(`Record deleted for ${name}`);
+        refreshAdminUsers();
+    } catch (err) {
+        alert("Delete failed: " + (err.message || err));
+    }
+}
+
+function toast(msg) {
+    let t = document.getElementById("presenterToast");
+    if (!t) {
+        t = document.createElement("div");
+        t.id = "presenterToast";
+        t.className = "presenter-toast";
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add("visible");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove("visible"), 2500);
+}

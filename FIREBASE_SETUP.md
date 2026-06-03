@@ -28,12 +28,18 @@ In the Realtime Database **Rules** tab, paste:
 ```json
 {
   "rules": {
+    "admins": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$uid": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
     "users": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid",
-        ".validate": "newData.hasChildren(['uid', 'displayName', 'xp'])",
-        "uid":               { ".validate": "newData.val() === $uid" },
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
+        ".validate": "newData.hasChildren(['displayName']) || newData.val() === null",
+        "uid":               { ".validate": "newData.isString()" },
         "displayName":       { ".validate": "newData.isString() && newData.val().length <= 50" },
         "email":             { ".validate": "newData.isString()" },
         "photoURL":          { ".validate": "newData.isString()" },
@@ -61,6 +67,23 @@ Rationale:
 - Each user can only **write** their own `users/{uid}` node — no impersonation.
 - XP is capped at 1,000,000 to make hand-tampering pointless.
 - Display names limited to 50 chars to prevent UI griefing.
+- Admins listed under `/admins/{uid} = true` can write to and delete any user record.
+
+## 3a. Promote yourself to admin
+
+After you sign in once via the student lab or presenter view, find your UID in the
+[Authentication → Users](https://console.firebase.google.com/project/powershell-academy-labs/authentication/users)
+tab.
+
+Then in the Realtime Database, manually create:
+
+```
+/admins
+   /<your-uid>: true
+```
+
+That's the gate the presenter "👥 Manage Users" button checks. Repeat for any
+co-presenter or co-instructor.
 
 ## 4. Add authorized domains
 

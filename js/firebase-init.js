@@ -116,6 +116,55 @@ window.fbHelpers = {
             console.error("Leaderboard read failed:", err);
             cb([]);
         });
+    },
+
+    // ===== ADMIN =====
+
+    // Check whether the currently signed-in user is in /admins/{uid}
+    isAdmin: async (uid) => {
+        try {
+            const snap = await get(ref(db, `admins/${uid}`));
+            return snap.exists() && snap.val() === true;
+        } catch (e) { return false; }
+    },
+
+    // List every user record (admin only — fails silently for non-admins)
+    listAllUsers: async () => {
+        const snap = await get(ref(db, "users"));
+        if (!snap.exists()) return [];
+        const list = [];
+        snap.forEach((child) => {
+            const v = child.val() || {};
+            list.push({ uid: child.key, ...v });
+        });
+        return list;
+    },
+
+    // Reset a user's progress to zero — keeps their auth record + display name
+    resetUserProgress: async (uid) => {
+        return update(ref(db, `users/${uid}`), {
+            xp: 0,
+            level: 1,
+            badges: [],
+            completedSections: [],
+            completedChallenges: [],
+            viewedChallengeSolutions: [],
+            codeRuns: 0,
+            labsCompleted: 0
+        });
+    },
+
+    // Delete a user's record entirely — removes them from leaderboard.
+    // Note: their Firebase Auth account is NOT deleted by this (browser SDK
+    // can't delete other users). Use the Firebase Console for that.
+    deleteUserRecord: (uid) => {
+        return set(ref(db, `users/${uid}`), null);
+    },
+
+    // Get a single user's full record
+    getUser: async (uid) => {
+        const snap = await get(ref(db, `users/${uid}`));
+        return snap.exists() ? snap.val() : null;
     }
 };
 
