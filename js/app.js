@@ -1703,6 +1703,30 @@ function renderLeaderboardList(users) {
 
 // ===== END LEADERBOARD =====
 
+// ===== Fullscreen =====
+
+function toggleStudentFullscreen() {
+    const btn = document.querySelector('.fullscreen-btn');
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+            if (btn) btn.innerHTML = '⛶ Exit';
+        }).catch((err) => {
+            console.warn('Fullscreen request failed:', err);
+        });
+    } else {
+        document.exitFullscreen().then(() => {
+            if (btn) btn.innerHTML = '⛶ Fullscreen';
+        }).catch(() => {});
+    }
+}
+
+// Keep button label in sync if user presses Esc / F11
+document.addEventListener('fullscreenchange', () => {
+    const btn = document.querySelector('.fullscreen-btn');
+    if (!btn) return;
+    btn.innerHTML = document.fullscreenElement ? '⛶ Exit' : '⛶ Fullscreen';
+});
+
 // ===== Keyboard Navigation =====
 // Right arrow reveals/advances, left arrow goes back
 document.addEventListener("keydown", function(e) {
@@ -1717,6 +1741,10 @@ document.addEventListener("keydown", function(e) {
     } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         previousSection();
+    } else if (e.key === "f" || e.key === "F") {
+        // Toggle fullscreen
+        e.preventDefault();
+        toggleStudentFullscreen();
     }
 });
 
