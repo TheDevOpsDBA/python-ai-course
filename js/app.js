@@ -79,6 +79,7 @@ function getProgress() {
 }
 
 function saveProgress(progress) {
+    progress.lastSavedAt = Date.now();
     localStorage.setItem(getProgressKey(), JSON.stringify(progress));
     syncProgressToCloud(progress);
 }
@@ -683,23 +684,49 @@ function hideBootSplash() {
 // Merge cloud-stored progress into local storage so existing UI keeps working
 function mergeCloudIntoLocal(cloud) {
     const local = getProgress();
-    const merged = {
-        ...local,
-        xp: Math.max(local.xp || 0, cloud.xp || 0),
-        badges: Array.from(new Set([...(local.badges || []), ...(cloud.badges || [])])),
-        completedSections: Array.from(new Set([...(local.completedSections || []), ...(cloud.completedSections || [])])),
-        codeRuns: Math.max(local.codeRuns || 0, cloud.codeRuns || 0),
-        labsCompleted: Math.max(local.labsCompleted || 0, cloud.labsCompleted || 0)
-    };
-    localStorage.setItem(getProgressKey(), JSON.stringify(merged));
 
-    const localCh = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
-    const cloudCh = cloud.completedChallenges || [];
-    localStorage.setItem('completedChallenges', JSON.stringify(Array.from(new Set([...localCh, ...cloudCh]))));
+    // If the cloud was reset by an admin AFTER our last local save, the cloud
+    // is authoritative — wipe local. Otherwise merge optimistically.
+    const cloudResetAt = typeof cloud.resetAt === 'number' ? cloud.resetAt : 0;
+    const localSavedAt = typeof local.lastSavedAt === 'number' ? local.lastSavedAt : 0;
+    const cloudWins = cloudResetAt > 0 && cloudResetAt >= localSavedAt;
 
-    const localViewed = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
-    const cloudViewed = cloud.viewedChallengeSolutions || [];
-    localStorage.setItem('viewedChallengeSolutions', JSON.stringify(Array.from(new Set([...localViewed, ...cloudViewed]))));
+    let merged;
+    if (cloudWins) {
+        // Adopt the cloud snapshot verbatim
+        merged = {
+            ...local,                       // keep userName, firstVisit, streak meta
+            xp:                cloud.xp || 0,
+            level:             cloud.level || 1,
+            badges:            cloud.badges || [],
+            completedSections: cloud.completedSections || [],
+            codeRuns:          cloud.codeRuns || 0,
+            labsCompleted:     cloud.labsCompleted || 0,
+            lastSavedAt:       cloudResetAt
+        };
+        localStorage.setItem(getProgressKey(), JSON.stringify(merged));
+        localStorage.setItem('completedChallenges',     JSON.stringify(cloud.completedChallenges || []));
+        localStorage.setItem('viewedChallengeSolutions', JSON.stringify(cloud.viewedChallengeSolutions || []));
+        console.info("Cloud reset detected — local progress replaced with cloud snapshot.");
+    } else {
+        merged = {
+            ...local,
+            xp: Math.max(local.xp || 0, cloud.xp || 0),
+            badges: Array.from(new Set([...(local.badges || []), ...(cloud.badges || [])])),
+            completedSections: Array.from(new Set([...(local.completedSections || []), ...(cloud.completedSections || [])])),
+            codeRuns: Math.max(local.codeRuns || 0, cloud.codeRuns || 0),
+            labsCompleted: Math.max(local.labsCompleted || 0, cloud.labsCompleted || 0)
+        };
+        localStorage.setItem(getProgressKey(), JSON.stringify(merged));
+
+        const localCh = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
+        const cloudCh = cloud.completedChallenges || [];
+        localStorage.setItem('completedChallenges', JSON.stringify(Array.from(new Set([...localCh, ...cloudCh]))));
+
+        const localViewed = JSON.parse(localStorage.getItem('viewedChallengeSolutions') || '[]');
+        const cloudViewed = cloud.viewedChallengeSolutions || [];
+        localStorage.setItem('viewedChallengeSolutions', JSON.stringify(Array.from(new Set([...localViewed, ...cloudViewed]))));
+    }
 
     // Cloud's display name might be older than the in-memory current name —
     // bootAuth has already chosen the correct one. Don't overwrite it.
@@ -2101,6 +2128,53 @@ function renderLeaderboardList(users) {
 }
 
 // ===== END LEADERBOARD =====
+
+// ===== Reset my progress (self-service cache + cloud reset for the current course) =====
+
+async function resetMyProgress() {
+    const courseId = (window.fbHelpers && window.fbHelpers.COURSE_ID) || 'this course';
+    const ok = confirm(
+        `Reset all your progress for ${courseId}?\n\n` +
+        `This will:\n` +
+        `  • Clear cached XP, badges, completed sections and challenges (this device)\n` +
+        `  • Zero your progress on the cloud (all your devices)\n` +
+        `  • Keep your sign-in account and your work on OTHER courses intact\n\n` +
+        `This cannot be undone. Continue?`
+    );
+    if (!ok) return;
+
+    // 1. Wipe per-course localStorage
+    try {
+        const progressKey = getProgressKey();
+        localStorage.removeItem(progressKey);
+        localStorage.removeItem('completedChallenges');
+        localStorage.removeItem('viewedChallengeSolutions');
+        localStorage.removeItem(STORAGE_KEYS.lastSession);
+        // Drop editor + chat caches for this course
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            if (k.startsWith(STORAGE_KEYS.editorPrefix) || k.startsWith(STORAGE_KEYS.chatPrefix)) {
+                localStorage.removeItem(k);
+            }
+        }
+        // Old non-namespaced key, if still around
+        localStorage.removeItem('pythonLabProgress');
+    } catch (e) { console.warn('Local clear failed:', e); }
+
+    // 2. Zero the cloud
+    if (currentUser && !currentUser.isGuest && window.fbHelpers && window.fbHelpers.resetUserProgress) {
+        try {
+            await window.fbHelpers.resetUserProgress(currentUser.uid, window.fbHelpers.COURSE_ID);
+        } catch (e) {
+            console.warn('Cloud reset failed:', e);
+            alert('Cloud reset failed — your local cache is cleared, but please tell your instructor if your XP keeps showing the old value.');
+        }
+    }
+
+    // 3. Reload so all in-memory state goes with it
+    location.reload();
+}
 
 // ===== Fullscreen =====
 

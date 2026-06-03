@@ -303,7 +303,9 @@ window.fbHelpers = {
             completedChallenges: [],
             viewedChallengeSolutions: [],
             codeRuns: 0,
-            labsCompleted: 0
+            labsCompleted: 0,
+            // Stamp the reset moment so clients can detect & honour the wipe
+            resetAt: serverTimestamp()
         });
     },
 

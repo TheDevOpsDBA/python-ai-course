@@ -1793,3 +1793,22 @@ body {
     letter-spacing: 2px;
     font-family: 'Inter', system-ui, sans-serif;
 }
+
+
+/* "Reset my progress" button in the gamification bar */
+.reset-btn {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.28);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 6px;
+    transition: background 0.2s;
+}
+.reset-btn:hover {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(245, 158, 11, 0.45);
+}
