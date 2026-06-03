@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presenter View — Python for AI</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/presenter.css">
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css"/>
+</head>
+<body class="presenter-body">
+
+<nav class="top-bar presenter-top-bar">
+    <a href="index.html" class="logo-link">
+        <img src="images/Powershell Academy Logo 300-300.png" alt="PowerShell Academy" class="nav-logo">
+    </a>
+    <div class="presenter-title">
+        <span class="presenter-tag">PRESENTER</span>
+        <span class="breadcrumb" id="breadcrumb">Module — Section</span>
+    </div>
+    <div class="presenter-tools">
+        <span class="timer-block" title="Section timer">
+            <span class="timer-label">Section</span>
+            <span class="timer-value" id="sectionTimer">00:00</span>
+        </span>
+        <span class="timer-block" title="Total session timer">
+            <span class="timer-label">Session</span>
+            <span class="timer-value" id="sessionTimer">00:00:00</span>
+        </span>
+        <button onclick="toggleTimer()" id="timerBtn" title="Start/Pause section timer (T)">▶ Start</button>
+        <button onclick="resetSectionTimer()" title="Reset section timer">↺</button>
+        <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+        <a href="index.html" target="_blank" class="open-student-btn" title="Open student lab in new tab">🎓 Student Lab</a>
+    </div>
+</nav>
+
+<div class="presenter-toolbar">
+    <select id="moduleSelect"></select>
+    <select id="sectionSelect"></select>
+    <button onclick="prevSection()">← Prev</button>
+    <button onclick="nextSection()">Next →</button>
+    <span class="presenter-section-indicator" id="sectionIndicator">1 / 1</span>
+    <span class="presenter-progress" id="presenterProgress">Section 1 of N</span>
+</div>
+
+<div class="presenter-main">
+
+    <!-- LEFT: same content the student sees -->
+    <div class="presenter-pane presenter-content">
+        <div class="presenter-pane-header">
+            <span class="pane-icon">🎓</span>
+            <span class="pane-title">What students see</span>
+        </div>
+        <div class="presenter-pane-body">
+            <div class="lab-objective-card" id="labObjectiveCard">
+                <div class="lab-obj-header">
+                    <span class="lab-obj-icon">🎯</span>
+                    <span class="lab-obj-title">LAB OBJECTIVE</span>
+                </div>
+                <p class="lab-obj-text" id="labObjText"></p>
+                <div class="lab-obj-meta">
+                    <span class="lab-obj-badge time" id="labObjTime">⏱ 10 min</span>
+                    <span class="lab-obj-badge difficulty" id="labObjDifficulty">🧠 Beginner</span>
+                </div>
+            </div>
+
+            <h2 class="section-heading" id="sectionHeading"></h2>
+
+            <div class="diagram-card">
+                <div class="diagram-box" id="diagramBox"></div>
+            </div>
+
+            <div id="description"></div>
+
+            <div class="presenter-example-block">
+                <div class="presenter-example-header">
+                    <span>📂 Example code</span>
+                    <select id="exampleSelect"></select>
+                    <button onclick="copyExampleCode()" title="Copy code">📋</button>
+                </div>
+                <pre class="presenter-code-preview" id="codePreview"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: presenter-only notes -->
+    <div class="presenter-pane presenter-notes">
+        <div class="presenter-pane-header">
+            <span class="pane-icon">🎤</span>
+            <span class="pane-title">Speaker notes</span>
+            <button class="presenter-notes-toggle" onclick="toggleNotesSize()" id="notesSizeBtn" title="Larger text">A+</button>
+        </div>
+        <div class="presenter-pane-body" id="presenterNotesBody">
+            <!-- Generated dynamically -->
+        </div>
+    </div>
+
+</div>
+
+<!-- Floating help panel -->
+<div class="presenter-help" id="presenterHelp" style="display:none;" onclick="if(event.target===this)document.getElementById('presenterHelp').style.display='none'">
+    <div class="presenter-help-card">
+        <h3>Presenter shortcuts</h3>
+        <table>
+            <tr><td><kbd>→</kbd></td><td>Next section</td></tr>
+            <tr><td><kbd>←</kbd></td><td>Previous section</td></tr>
+            <tr><td><kbd>Space</kbd></td><td>Reveal next bullet</td></tr>
+            <tr><td><kbd>T</kbd></td><td>Start / pause section timer</td></tr>
+            <tr><td><kbd>R</kbd></td><td>Reset section timer</td></tr>
+            <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+            <tr><td><kbd>S</kbd></td><td>Open student lab in new tab</td></tr>
+            <tr><td><kbd>?</kbd></td><td>This help screen</td></tr>
+        </table>
+        <button onclick="document.getElementById('presenterHelp').style.display='none'">Close</button>
+    </div>
+</div>
+
+<button class="presenter-help-fab" onclick="document.getElementById('presenterHelp').style.display='flex'">?</button>
+
+<script src="data/courses.js"></script>
+<script src="js/diagrams.js"></script>
+<script src="js/presenter.js"></script>
+
+</body>
+</html>
