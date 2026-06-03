@@ -26,11 +26,14 @@ body {
 .logo-link { display: flex; align-items: center; }
 .nav-logo {
     height: 32px;
-    width: auto;                /* preserve native aspect ratio */
+    width: auto;
     object-fit: contain;
-    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
     -webkit-user-drag: none;
     display: block;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 .breadcrumb { margin-left: 16px; color: #94a3b8; font-size: 13px; }
 .progress-container {
@@ -1316,18 +1319,22 @@ body {
     border-radius: 16px;
     padding: 36px 32px 24px;
     width: 100%;
-    max-width: 420px;
+    max-width: 460px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(99,102,241,0.08);
     text-align: center;
 }
 
 .auth-logo {
-    height: 56px;
+    height: 80px;
     width: auto;
-    max-width: 280px;
-    margin-bottom: 14px;
+    max-width: 100%;
+    margin: 0 auto 18px;
+    display: block;
     object-fit: contain;
-    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .auth-title {
@@ -1759,11 +1766,15 @@ body {
 @keyframes bootFade { from { opacity: 0; } to { opacity: 1; } }
 
 .boot-logo {
-    height: 64px;
+    height: 96px;
     width: auto;
-    max-width: 320px;
+    max-width: 80vw;
     object-fit: contain;
-    image-rendering: -webkit-optimize-contrast;
+    display: block;
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     opacity: 0.95;
 }
 .boot-spinner {

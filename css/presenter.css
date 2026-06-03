@@ -26,8 +26,11 @@
     height: 32px;
     width: auto;
     object-fit: contain;
-    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
     display: block;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .presenter-title {
