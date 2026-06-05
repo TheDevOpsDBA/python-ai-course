@@ -1812,3 +1812,30 @@ body {
     background: rgba(245, 158, 11, 0.22);
     border-color: rgba(245, 158, 11, 0.45);
 }
+
+
+/* ============================================================ */
+/* ENTITLEMENT LOCK — shown for paid modules without entitlement */
+/* ============================================================ */
+.locked-card {
+    background: linear-gradient(160deg, #111827 0%, #0a0f1a 100%);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    border-radius: 14px;
+    padding: 36px 32px;
+    text-align: center;
+    margin: 24px auto;
+    max-width: 640px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 80px rgba(99,102,241,0.06);
+}
+.locked-card-icon { font-size: 56px; margin-bottom: 12px; filter: drop-shadow(0 4px 10px rgba(99, 102, 241, 0.5)); }
+.locked-card-title { font-size: 19px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; line-height: 1.4; font-family: 'Inter', sans-serif; }
+.locked-card-text { font-size: 14px; color: #cbd5e1; line-height: 1.7; margin: 0 0 24px; }
+.locked-card-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
+.locked-card-cta { background: linear-gradient(135deg, #00d4aa, #6366f1); color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; transition: transform 0.15s, box-shadow 0.2s; box-shadow: 0 4px 16px rgba(0, 212, 170, 0.25); }
+.locked-card-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0, 212, 170, 0.35); }
+.locked-card-secondary { background: rgba(148, 163, 184, 0.1); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); padding: 11px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+.locked-card-secondary:hover { background: rgba(148, 163, 184, 0.18); }
+.locked-card-tip { font-size: 12px; color: #94a3b8; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, 0.1); line-height: 1.6; }
+.locked-card-tip a { color: #00d4aa; text-decoration: none; font-weight: 500; }
+.locked-card-tip a:hover { text-decoration: underline; }
+.locked-card-tip code { background: #0a0f1a; color: #00d4aa; padding: 1px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }

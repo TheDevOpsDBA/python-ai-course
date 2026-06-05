@@ -358,6 +358,25 @@ window.fbHelpers = {
             editorState: edSnap.exists() ? edSnap.val() : {},
             chatHistory: chatSnap.exists() ? chatSnap.val() : {}
         };
+    },
+
+    // ===== ENTITLEMENTS =====
+
+    loadEntitlement: async (uid) => {
+        try {
+            const snap = await get(ref(db, `users/${uid}/entitlements/${COURSE_ID}`));
+            if (!snap.exists()) return null;
+            return snap.val();
+        } catch (e) {
+            console.warn("loadEntitlement failed:", e && e.message);
+            return null;
+        }
+    },
+
+    subscribeEntitlement: (uid, cb) => {
+        return onValue(ref(db, `users/${uid}/entitlements/${COURSE_ID}`), (snap) => {
+            cb(snap.exists() ? snap.val() : null);
+        });
     }
 };
 

@@ -16,6 +16,46 @@ let lastSessionSaveTimer = null; // debounced last-session save
 let chatHistory = [];            // in-memory current section's chat (synced w/ localStorage)
 let cloudHydrated = false;       // becomes true once cloud data has been merged in
 
+// Entitlement state for the current course
+let currentEntitlement = null;            // { tier: "full"|"preview", source, ... } or null
+let entitlementUnsubscribe = null;        // listener cleanup
+const PREVIEW_MODULE_LIMIT = 3;
+const ENROLL_URL = "https://www.powershellacademy.com/s/store";
+
+// Cloudflare Worker that brokers Graphy webhooks and claim-pending requests.
+const WORKER_URL    = "https://graphy-enrollment-webhook.powershell4u.workers.dev";
+const WORKER_SECRET = "gly_xq7v9R2kPm8N4tH6sZ3wA1bEcF5dG0jL";
+
+async function claimPendingViaWorker(uid, email) {
+    if (!uid || !email) return;
+    try {
+        const res = await fetch(`${WORKER_URL}/claim`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-webhook-secret": WORKER_SECRET },
+            body: JSON.stringify({ uid, email })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (data && Array.isArray(data.claimed) && data.claimed.length > 0) {
+            console.info("Claimed pending entitlements:", data.claimed);
+        }
+    } catch (e) {
+        console.warn("Worker /claim call failed:", e && e.message);
+    }
+}
+
+function hasFullAccess() {
+    if (!currentEntitlement) return false;
+    if (currentEntitlement.tier !== "full") return false;
+    if (currentEntitlement.expiresAt && Date.now() > currentEntitlement.expiresAt) return false;
+    return true;
+}
+
+function isModuleLocked(moduleIdx) {
+    if (moduleIdx < PREVIEW_MODULE_LIMIT) return false;
+    return !hasFullAccess();
+}
+
+
 // OpenRouter API Configuration
 // Key is injected at deploy time via GitHub Actions
 const API_KEY_INJECTED = "__GEMINI_API_KEY__";
@@ -659,6 +699,45 @@ function bootAuth() {
                     console.warn("Editor/chat hydrate failed:", e2);
                 }
 
+                // Claim any pending entitlement (call the Cloudflare Worker, which has admin
+                // permissions and can read pendingEntitlements).
+                try {
+                    await claimPendingViaWorker(user.uid, user.email || "");
+                } catch (eClaim) {
+                    console.warn("claimPendingViaWorker failed:", eClaim);
+                }
+
+                // Hydrate entitlement state
+                try {
+                    if (window.fbHelpers.loadEntitlement) {
+                        currentEntitlement = await window.fbHelpers.loadEntitlement(user.uid);
+                    }
+                    if (window.fbHelpers.subscribeEntitlement) {
+                        if (entitlementUnsubscribe) entitlementUnsubscribe();
+                        entitlementUnsubscribe = window.fbHelpers.subscribeEntitlement(user.uid, (ent) => {
+                            const wasLocked  = !hasFullAccess();
+                            currentEntitlement = ent;
+                            const nowUnlocked = hasFullAccess();
+                            // Rebuild module dropdown labels so 🔒 marks update
+                            if (typeof loadModules === 'function' && document.getElementById('moduleSelect')) {
+                                const sel = document.getElementById('moduleSelect');
+                                Array.from(sel.options).forEach((opt, i) => {
+                                    const m = courseData.modules[i];
+                                    if (!m) return;
+                                    opt.textContent = (isModuleLocked(i) ? '🔒 ' : '') + m.title;
+                                    opt.style.color = isModuleLocked(i) ? '#94a3b8' : '';
+                                });
+                            }
+                            if (wasLocked && nowUnlocked) {
+                                showToast('🔓 Course unlocked! Welcome.');
+                                renderSection();
+                            }
+                        });
+                    }
+                } catch (eEnt) {
+                    console.warn("entitlement hydrate failed:", eEnt);
+                }
+
                 cloudHydrated = true;
             } catch (e) {
                 console.warn("Auth hydrate failed:", e);
@@ -904,7 +983,9 @@ function loadModules() {
         const option = document.createElement("option");
 
         option.value = index;
-        option.textContent = module.title;
+        const lockMark = isModuleLocked(index) ? '🔒 ' : '';
+        option.textContent = lockMark + module.title;
+        if (isModuleLocked(index)) option.style.color = '#94a3b8';
 
         moduleSelect.appendChild(option);
     });
@@ -960,6 +1041,15 @@ function renderSection() {
     const section =
         courseData.modules[currentModule]
         .sections[currentSection];
+
+    // Entitlement gate — modules beyond the preview limit need an active entitlement.
+    if (isModuleLocked(currentModule)) {
+        renderLockedSection();
+        return;
+    } else {
+        const lock = document.getElementById('lockedCard');
+        if (lock) lock.style.display = 'none';
+    }
 
     // Show lab objective card when entering a new module
     const card = document.getElementById('labObjectiveCard');
@@ -2222,3 +2312,93 @@ document.addEventListener("keydown", function(e) {
 });
 
 window.onload = initializeApp;
+
+
+// ===== Entitlement lock card =====
+
+function renderLockedSection() {
+    const module = courseData.modules[currentModule];
+    const labObj = document.getElementById('labObjectiveCard');
+    if (labObj) labObj.style.display = 'none';
+    const desc = document.getElementById('description');
+    if (desc) desc.innerHTML = '';
+    const diagram = document.querySelector('.diagram-box');
+    if (diagram) diagram.innerHTML = '';
+    const heading = document.getElementById('sectionHeading');
+    if (heading) heading.textContent = '';
+
+    const left = document.getElementById('leftPanel');
+    let card = document.getElementById('lockedCard');
+    if (!card) {
+        card = document.createElement('div');
+        card.id = 'lockedCard';
+        card.className = 'locked-card';
+        if (left) left.insertBefore(card, left.firstChild);
+    }
+    card.style.display = 'block';
+    card.innerHTML = `
+        <div class="locked-card-icon">🔒</div>
+        <div class="locked-card-title">${escapeHtml(module.title)} is part of the paid course</div>
+        <p class="locked-card-text">
+            Modules 1–${PREVIEW_MODULE_LIMIT} are free for everyone. To unlock the rest — including
+            the AI Lab Mentor for advanced modules, hands-on challenges, and the live leaderboard —
+            enrol on PowerShell Academy.
+        </p>
+        <div class="locked-card-actions">
+            <a href="${ENROLL_URL}" target="_blank" class="locked-card-cta">🚀 Enrol on PowerShell Academy</a>
+            <button class="locked-card-secondary" onclick="goToFirstUnlockedModule()">↩ Back to free modules</button>
+        </div>
+        <p class="locked-card-tip">
+            ⚠️ <strong>Important:</strong> when you enrol, use the
+            <strong>same email</strong> you signed in with here (<code>${escapeHtml((currentUser && currentUser.email) || 'your-email@example.com')}</code>).
+            That's how the lab automatically unlocks for you.
+            <br><br>
+            Already enrolled? Once your purchase is processed (usually within seconds),
+            this page will unlock automatically. You can also click
+            <a href="#" onclick="recheckEntitlement(); return false;">refresh access</a>.
+        </p>
+    `;
+
+    const rightPanel = document.getElementById('rightPanel');
+    const toggleBtn  = document.getElementById('panelToggle');
+    if (rightPanel && rightPanel.classList.contains('open') && typeof toggleRightPanel === 'function') toggleRightPanel();
+    if (toggleBtn) toggleBtn.classList.remove('has-code');
+
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (breadcrumb) breadcrumb.textContent = module.title + ' > 🔒 Locked';
+    const totalInModule = module.sections.length;
+    const indicator = document.getElementById('sectionIndicator');
+    if (indicator) indicator.textContent = (currentSection + 1) + ' / ' + totalInModule;
+}
+
+function goToFirstUnlockedModule() {
+    currentModule  = Math.min(PREVIEW_MODULE_LIMIT - 1, courseData.modules.length - 1);
+    currentSection = 0;
+    if (typeof loadSections === 'function') loadSections(); else renderSection();
+}
+
+async function recheckEntitlement() {
+    if (!currentUser || !window.fbHelpers || !window.fbHelpers.loadEntitlement) {
+        showToast('Sign in to refresh your access.');
+        return;
+    }
+    showToast('Checking access…');
+    try {
+        await claimPendingViaWorker(currentUser.uid, currentUser.email || "");
+        currentEntitlement = await window.fbHelpers.loadEntitlement(currentUser.uid);
+        if (hasFullAccess()) {
+            showToast('🔓 Access granted!');
+            renderSection();
+        } else {
+            showToast('No active entitlement found yet. Try again in a moment.');
+        }
+    } catch (e) {
+        showToast('Could not check access — please refresh the page.');
+    }
+}
+
+if (typeof escapeHtml !== 'function') {
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+}
