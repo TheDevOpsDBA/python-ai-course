@@ -21,6 +21,7 @@ import {
     signInWithPopup,
     signInAnonymously,
     signOut,
+    signInWithCustomToken,
     updateProfile
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import {
@@ -81,6 +82,7 @@ window.fbHelpers = {
     signInGoogle:    () => signInWithPopup(auth, new GoogleAuthProvider()),
     signInAnonymous: () => signInAnonymously(auth),
     signOut:         () => signOut(auth),
+    signInWithCustomToken: (token) => signInWithCustomToken(auth, token),
     updateName: (displayName) => updateProfile(auth.currentUser, { displayName }),
 
     // Load merged identity + this course's progress

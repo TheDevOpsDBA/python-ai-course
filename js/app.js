@@ -641,6 +641,27 @@ async function initializeApp() {
 
 function bootAuth() {
     firebaseReady = true;
+
+    // One-click login: if URL has ?authToken=, sign in with it immediately
+    const urlParams = new URLSearchParams(window.location.search);
+    const authToken = urlParams.get('authToken');
+    if (authToken && window.fbHelpers && window.fbHelpers.signInWithCustomToken) {
+        window.fbHelpers.signInWithCustomToken(authToken).then(() => {
+            // Clean the URL so the token doesn't sit in the address bar
+            window.history.replaceState({}, '', window.location.pathname);
+        }).catch((e) => {
+            console.warn("Auto sign-in with token failed:", e && e.message);
+        });
+    }
+
+    // Pre-fill email hint from ?hint= parameter  
+    const emailHint = urlParams.get('hint');
+    if (emailHint) {
+        setTimeout(() => {
+            const emailField = document.getElementById('authEmail');
+            if (emailField) emailField.value = emailHint;
+        }, 500);
+    }
     window.fbHelpers.onAuthStateChanged(async (user) => {
         if (user) {
             // Pull the cloud record FIRST so a user's custom display name (set via
