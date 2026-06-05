@@ -249,60 +249,117 @@ function buildNotes(module, section) {
 
 function autoNotes(module, section) {
     const notes = { intro: [], keyPoints: [], demo: [], qa: [], recap: [], cta: "" };
-
-    // Intro — frame it for IT pros
-    notes.intro.push(`Read the section title aloud: <strong>${section.title}</strong>.`);
-    if (section.brief || section.description) {
-        const firstSentence = strip(section.brief || section.description).split(/[.!?]/)[0];
-        if (firstSentence && firstSentence.length > 8) {
-            notes.intro.push(`Lead with: "${firstSentence.trim()}."`);
-        }
-    }
-    notes.intro.push("Ask one warm-up question to gauge familiarity (e.g., \"How many of you have used this before?\").");
-
-    // Key points pulled from <li> bullets in the description
     const bullets = extractBullets(section.brief || section.description || "");
-    bullets.slice(0, 6).forEach(b => notes.keyPoints.push(b));
-    if (notes.keyPoints.length === 0) {
-        notes.keyPoints.push("Walk students through the diagram on the left.");
-    }
+    const sTitle = section.title || "";
 
-    // Demo flow from examples
-    if (section.examples && section.examples.length > 0) {
-        notes.demo.push("Open the right panel in the student lab so attendees can follow along.");
-        section.examples.forEach((ex, i) => {
-            notes.demo.push(`<strong>${ex.name}</strong> — paste/show the code, run it, point out the output.`);
+    // ===== INTRO — what to actually say out loud =====
+    notes.intro.push(`<em>"Alright, let's move to our next section: <strong>${sTitle}</strong>."</em>`);
+    if (bullets.length > 0) {
+        notes.intro.push(`<em>"Here's the big picture — by the end of this section you'll be able to ${bullets[0].toLowerCase()}${bullets[0].endsWith('.') ? '' : '.'}"</em>`);
+    }
+    notes.intro.push(`<em>"Before I dive in — quick show of hands, has anyone here worked with ${guessTopicFromTitle(sTitle)} before? No? Perfect, we'll start from zero."</em>`);
+
+    // ===== KEY POINTS — expanded into spoken explanations =====
+    if (bullets.length > 0) {
+        bullets.slice(0, 5).forEach((b, i) => {
+            notes.keyPoints.push(expandBulletIntoScript(b, i + 1, bullets.length));
         });
-        if (section.examples.length > 1) {
-            notes.demo.push("Highlight the difference between the simpler and more advanced examples.");
-        }
-        notes.demo.push("Encourage students to modify a value (e.g., change a name, a number) and re-run to internalise it.");
-    } else if (section.lab) {
-        notes.demo.push("This is a hands-on section — let students attempt the lab challenge first.");
-        notes.demo.push("Walk around or share screen as they work; expect 5-10 min of quiet coding time.");
     } else {
-        notes.demo.push("This is a conceptual section — no live coding. Use the diagram and bullets to drive the discussion.");
+        notes.keyPoints.push(`<em>"Let me walk you through the diagram on the left — this shows the flow of what we're building."</em>`);
     }
 
-    // Likely questions
+    // ===== DEMO — step-by-step spoken instructions =====
+    if (section.examples && section.examples.length > 0) {
+        notes.demo.push(`<em>"OK, let's see this in action. I'm going to open the code panel on the right."</em>`);
+        section.examples.forEach((ex, i) => {
+            if (i === 0) {
+                notes.demo.push(`<em>"This first example is called <strong>${ex.name}</strong>. Let me read through it line by line…"</em> → point at each line, explain what it does.`);
+                notes.demo.push(`<em>"Now watch what happens when I run it…"</em> → Copy and run in terminal. Point out the output.`);
+            } else {
+                notes.demo.push(`<em>"Now let's look at a slightly different version: <strong>${ex.name}</strong>. Notice how ${guessWhatChanged(ex.name)} — that's the key difference."</em>`);
+            }
+        });
+        notes.demo.push(`<em>"Try changing one value yourself — maybe swap the server name or the ticket ID — and run it again. See what changes in the output."</em>`);
+    } else {
+        notes.demo.push(`<em>"This is a concept section — no code to run here. Let me explain the diagram and we'll get to hands-on in the next section."</em>`);
+    }
+
+    // ===== Q&A — Jira / PowerShell / REST specific =====
     notes.qa = inferQuestions(section);
 
-    // Recap
-    notes.recap.push("Summarise the one-line takeaway in your own words.");
-    if (section.lab) {
-        notes.recap.push("Confirm everyone has attempted the hands-on challenge before moving on.");
+    // ===== RECAP — what to say before moving on =====
+    notes.recap.push(`<em>"To summarise this section in one line: ${generateOneLineSummary(sTitle, bullets)}."</em>`);
+    if (section.examples && section.examples.length > 0) {
+        notes.recap.push(`<em>"Make sure you've copied and run at least one of those examples before we move on. If you got an error, paste it into the AI mentor — it'll tell you exactly what went wrong."</em>`);
     }
-    notes.recap.push("Ask: \"Any blockers before we move to the next section?\"");
+    notes.recap.push(`<em>"Any questions or blockers? … Good. Let's move to the next section."</em>`);
 
-    // CTA / module wrap
+    // ===== CTA =====
     const isLastInModule = pCurrentSection === module.sections.length - 1;
     if (isLastInModule) {
-        notes.cta = `🎉 <strong>End of ${module.title}.</strong> Encourage students to view their badge progress and leaderboard standing before the break.`;
-    } else if (section.lab) {
-        notes.cta = `💡 Tip: this section has a Hands-On Challenge — make sure students click <strong>✓ Check My Code</strong> for AI feedback.`;
+        notes.cta = `🎉 <em>"That wraps up <strong>${module.title}</strong>. Great work. Check your badge progress — you might have just earned one. Take a 5-minute break and we'll start the next module."</em>`;
     }
 
     return notes;
+}
+
+// Expand a bare bullet ("Variables store data using the $ prefix") into a spoken script
+function expandBulletIntoScript(bullet, index, total) {
+    const b = bullet.replace(/<[^>]+>/g, '').trim();
+    if (index === 1) {
+        return `<em>"First thing to know: ${b.charAt(0).toLowerCase() + b.slice(1)}${b.endsWith('.') ? '' : '.'} This is the foundation — everything else in this section builds on it."</em>`;
+    }
+    if (index === total || index >= 5) {
+        return `<em>"And finally: ${b.charAt(0).toLowerCase() + b.slice(1)}${b.endsWith('.') ? '' : '.'} Keep this one in mind when we get to the hands-on part."</em>`;
+    }
+    const connectors = [
+        "Next up: ",
+        "Building on that: ",
+        "Here's the practical part: ",
+        "Related to that: "
+    ];
+    const connector = connectors[(index - 2) % connectors.length];
+    return `<em>"${connector}${b.charAt(0).toLowerCase() + b.slice(1)}${b.endsWith('.') ? '' : '.'}"</em>`;
+}
+
+// Guess the topic for the warm-up question from section title
+function guessTopicFromTitle(title) {
+    const t = title.toLowerCase();
+    if (t.includes('variable'))    return 'PowerShell variables';
+    if (t.includes('array') || t.includes('hashtable')) return 'arrays or hashtables';
+    if (t.includes('if') || t.includes('switch') || t.includes('condition')) return 'conditional logic in PowerShell';
+    if (t.includes('loop') || t.includes('foreach')) return 'loops or iteration';
+    if (t.includes('function') || t.includes('param')) return 'writing custom functions';
+    if (t.includes('json'))        return 'working with JSON in scripts';
+    if (t.includes('file') || t.includes('read') || t.includes('write')) return 'file I/O in PowerShell';
+    if (t.includes('rest') || t.includes('api') || t.includes('invoke')) return 'calling REST APIs from PowerShell';
+    if (t.includes('jira'))        return 'the Jira REST API';
+    if (t.includes('auth'))        return 'API authentication';
+    if (t.includes('ticket') || t.includes('issue')) return 'Jira ticket operations';
+    if (t.includes('email') || t.includes('report')) return 'automated reporting';
+    if (t.includes('module') || t.includes('import')) return 'PowerShell modules';
+    if (t.includes('status') || t.includes('transition')) return 'Jira workflow transitions';
+    return 'this particular topic';
+}
+
+// Guess what changed between examples for transition text
+function guessWhatChanged(exName) {
+    const n = exName.toLowerCase();
+    if (n.includes('error') || n.includes('handling')) return 'we added error handling';
+    if (n.includes('advanced') || n.includes('full')) return 'we combined everything into a complete script';
+    if (n.includes('param') || n.includes('function')) return 'we wrapped it in a reusable function';
+    if (n.includes('loop') || n.includes('multi') || n.includes('batch')) return 'we loop through multiple items';
+    return 'the approach is slightly different';
+}
+
+// Generate a one-line summary from the title + bullets
+function generateOneLineSummary(title, bullets) {
+    const clean = title.replace(/^\d+\.\d+\s*/, '').replace(/^Module \d+:\s*/i, '');
+    if (bullets.length > 0) {
+        const firstBullet = bullets[0].replace(/<[^>]+>/g, '').trim().toLowerCase();
+        return `you now know how to ${firstBullet.length > 60 ? clean.toLowerCase() : firstBullet}`;
+    }
+    return `you've covered ${clean}`;
 }
 
 // Pull the <li> texts out of the description HTML, strip tags
@@ -325,66 +382,64 @@ function strip(html) {
 
 function inferQuestions(section) {
     const title = (section.title || "").toLowerCase();
+    const content = strip(section.brief || section.description || "").toLowerCase();
     const all = [];
 
-    // Generic question patterns by topic keyword
     const patterns = [
-        { match: /variable|f-string|string|input|output/, qa: [
-            { q: "Why use f-strings instead of concatenation?", a: "They're faster, more readable, and let you embed expressions directly: <code>f\"CPU: {cpu}%\"</code>." }
+        { match: /variable|string|interpolat/, qa: [
+            { q: "When should I use single quotes vs double quotes?", a: "Double quotes expand variables (<code>\"Hello $name\"</code>). Single quotes are literal — no expansion. Use single quotes for strings that shouldn't change, like JSON keys." }
         ]},
-        { match: /list|tuple/, qa: [
-            { q: "When should I use a tuple vs a list?", a: "Tuples are immutable — use them for fixed records like <code>(host, port)</code>. Lists are for collections that change." }
+        { match: /array|hashtable|@\(|@\{/, qa: [
+            { q: "What's the difference between @() and @{}?", a: "<code>@()</code> creates an array (ordered list). <code>@{}</code> creates a hashtable (key-value pairs). APIs usually want hashtables for their body, arrays for lists of items." }
         ]},
-        { match: /dict|json/, qa: [
-            { q: "Are dicts ordered?", a: "Yes — since Python 3.7 they preserve insertion order. Use that when serialising to JSON." }
+        { match: /if|else|switch|condition/, qa: [
+            { q: "When should I use Switch instead of if/elseif?", a: "When you're comparing one value against 3+ possibilities. Switch is cleaner and faster to read — think of it like a routing table for values." }
         ]},
-        { match: /if|else|elif|condition/, qa: [
-            { q: "Can I do switch/case?", a: "Python 3.10+ has <code>match/case</code>; before that, an if/elif chain or a dict lookup is idiomatic." }
+        { match: /loop|foreach|for\b|while/, qa: [
+            { q: "ForEach-Object vs foreach — what's the difference?", a: "<code>ForEach-Object</code> works in the pipeline (<code>| ForEach-Object {...}</code>). The <code>foreach</code> statement loads everything into memory first — faster for large sets, but can't stream." }
         ]},
-        { match: /loop|for|while|range/, qa: [
-            { q: "When should I use a list comprehension instead of a loop?", a: "When you're building a new list from an iterable. If you have side-effects (logging, API calls), use a regular loop." }
+        { match: /function|param|parameter/, qa: [
+            { q: "Why use [Parameter(Mandatory)]?", a: "It forces the caller to provide the value — PowerShell will prompt them if they forget. Prevents silent failures from empty variables hitting your API call." }
         ]},
-        { match: /function|def|lambda|argument/, qa: [
-            { q: "Why use type hints?", a: "They document intent and let editors catch bugs early — they're optional at runtime." }
+        { match: /json|convert/, qa: [
+            { q: "Why does my JSON look flat / only 2 levels deep?", a: "ConvertTo-Json defaults to depth 2. Add <code>-Depth 10</code> for nested objects. This bites everyone at least once with Jira payloads." }
         ]},
-        { match: /error|exception|try|except/, qa: [
-            { q: "Should I catch <code>Exception</code> or be specific?", a: "Always be specific. Catching everything hides bugs. Catch <code>FileNotFoundError</code>, <code>ValueError</code>, etc." }
+        { match: /file|read|write|get-content/, qa: [
+            { q: "Get-Content vs Import-Csv — when to use which?", a: "Get-Content reads raw lines. Import-Csv parses structure. For JSON configs use <code>Get-Content | ConvertFrom-Json</code>." }
         ]},
-        { match: /file|csv|read|write/, qa: [
-            { q: "Why use <code>with open(...)</code>?", a: "It auto-closes the file even if an exception is raised — cleaner than manual <code>open()/close()</code>." }
+        { match: /module|import-module|psm1/, qa: [
+            { q: "Why use -Force when importing during development?", a: "Without -Force, PowerShell uses the cached version from the first import in that session. -Force reloads from disk — critical when you're editing the module between runs." }
         ]},
-        { match: /class|object|inherit/, qa: [
-            { q: "When do I need a class?", a: "When you have data that always travels with the same set of operations. For simple records, a dict or dataclass is enough." }
+        { match: /rest|api|invoke-restmethod|invoke-webrequest/, qa: [
+            { q: "Invoke-RestMethod vs Invoke-WebRequest — which one?", a: "RestMethod auto-parses JSON into objects — cleaner for APIs. WebRequest gives you raw access to headers, status codes, and redirects — use it when you need to inspect the full response." }
         ]},
-        { match: /pip|module|package|import/, qa: [
-            { q: "Should I use <code>pip install</code> globally or in a venv?", a: "Always in a venv. It isolates dependencies per project and keeps your system Python clean." }
+        { match: /jira|ticket|issue|atlassian/, qa: [
+            { q: "Do I need Jira admin access to use the API?", a: "No. A regular Jira user with an API token can read/write issues they have permission to see. Admin is only needed for project-level settings or app management." }
         ]},
-        { match: /ai|ml|machine learning|model/, qa: [
-            { q: "Do I need GPUs to learn ML?", a: "No — CPU is fine for the basics and small datasets. GPUs matter for deep learning training, not classical ML." }
+        { match: /auth|token|credential|basic|oauth/, qa: [
+            { q: "API token vs OAuth — which should I use?", a: "For scripts (automation by one person): API token with Basic auth — simple and effective. For apps that act on behalf of many users: OAuth 2.0. Jira Cloud supports both." }
         ]},
-        { match: /llm|prompt|gpt|generative/, qa: [
-            { q: "How do I keep my API key safe?", a: "Never commit it. Load from an environment variable: <code>os.getenv(\"OPENAI_API_KEY\")</code>." }
+        { match: /status|transition|workflow/, qa: [
+            { q: "Why can't I transition a ticket directly to 'Done'?", a: "Jira enforces workflow rules. You can only move to transitions allowed from the current status. Use <code>GET /transitions</code> first to find what's available from the current state." }
         ]},
-        { match: /api|request|http/, qa: [
-            { q: "Why use <code>requests</code> over <code>urllib</code>?", a: "<code>requests</code> has a cleaner API and handles JSON, headers, and sessions out of the box." }
+        { match: /email|report|send-mailmessage|html/, qa: [
+            { q: "Can I send HTML emails from PowerShell?", a: "Yes — <code>Send-MailMessage -BodyAsHtml</code> with an HTML string. Build a table with ConvertTo-Html or string templates. For modern sending, consider the Microsoft Graph API or SendGrid." }
         ]}
     ];
 
     patterns.forEach(p => {
-        if (p.match.test(title) || p.match.test(strip(section.brief || section.description || "").toLowerCase())) {
+        if (p.match.test(title) || p.match.test(content)) {
             all.push(...p.qa);
         }
     });
 
-    // Fallback so every section has at least one Q&A
     if (all.length === 0) {
         all.push({
-            q: "How does this apply to my day job?",
-            a: "Tie it to the audience: SQL DBAs can use this to automate reports; infra engineers to monitor servers; DevOps to glue tools together."
+            q: "How would I use this in a real production environment?",
+            a: "Frame it for the audience: this exact pattern can run as a scheduled task, a CI/CD step, or a manual on-demand tool. The code is production-ready — just add error handling and logging."
         });
     }
 
-    // Limit to 3 to keep notes scannable
     return all.slice(0, 3);
 }
 
