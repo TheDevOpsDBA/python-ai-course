@@ -183,8 +183,20 @@ function copyExampleCode() {
 
 function renderSpeakerNotes(module, section) {
     const body = document.getElementById("presenterNotesBody");
-    const notes = buildNotes(module, section);
+    const sectionKey = "presenterNotes." + (section.id || `m${pCurrentModule}s${pCurrentSection}`);
 
+    // Check if we have saved custom notes for this section
+    const saved = localStorage.getItem(sectionKey);
+
+    if (saved) {
+        // Render saved version with an info bar
+        body.innerHTML = renderNotesToolbar(sectionKey, true) + saved;
+        makeNotesEditable(body);
+        return;
+    }
+
+    // Auto-generate notes
+    const notes = buildNotes(module, section);
     let html = "";
 
     // Module Lab Objective recap
@@ -221,7 +233,76 @@ function renderSpeakerNotes(module, section) {
         html += `<div class="notes-cta">${notes.cta}</div>`;
     }
 
-    body.innerHTML = html || "<p style='color:#94a3b8'>No notes for this section.</p>";
+    body.innerHTML = renderNotesToolbar(sectionKey, false) + (html || "<p style='color:#94a3b8'>No notes for this section.</p>");
+    makeNotesEditable(body);
+}
+
+function renderNotesToolbar(sectionKey, hasSaved) {
+    return `<div class="notes-toolbar" data-key="${sectionKey}">
+        <button class="notes-save-btn" onclick="savePresenterNotes()" title="Save your edits">💾 Save</button>
+        ${hasSaved ? '<button class="notes-reset-btn" onclick="resetPresenterNotes()" title="Discard edits, regenerate from auto">↺ Reset to auto</button>' : ''}
+        <span class="notes-status" id="notesStatus">${hasSaved ? '✓ Custom notes loaded' : '✎ Click any text to edit'}</span>
+    </div>`;
+}
+
+function makeNotesEditable(container) {
+    // Make each notes-section's content editable
+    container.querySelectorAll('.notes-section, .notes-cta').forEach(el => {
+        el.setAttribute('contenteditable', 'true');
+        el.setAttribute('spellcheck', 'true');
+    });
+    // Also make the module kickoff <p> and Q&A blocks editable individually
+    container.querySelectorAll('.qa-q, .qa-a').forEach(el => {
+        el.setAttribute('contenteditable', 'true');
+    });
+}
+
+function savePresenterNotes() {
+    const body = document.getElementById("presenterNotesBody");
+    if (!body) return;
+    const toolbar = body.querySelector('.notes-toolbar');
+    if (!toolbar) return;
+    const key = toolbar.getAttribute('data-key');
+    if (!key) return;
+
+    // Grab everything after the toolbar as the saved content
+    const clone = body.cloneNode(true);
+    const tb = clone.querySelector('.notes-toolbar');
+    if (tb) tb.remove();
+    const html = clone.innerHTML;
+
+    localStorage.setItem(key, html);
+
+    const status = document.getElementById('notesStatus');
+    if (status) {
+        status.textContent = '✓ Saved';
+        status.style.color = '#6ee7d3';
+        setTimeout(() => { status.textContent = '✎ Editing'; status.style.color = ''; }, 2000);
+    }
+
+    // Ensure the reset button exists now
+    if (!toolbar.querySelector('.notes-reset-btn')) {
+        const btn = document.createElement('button');
+        btn.className = 'notes-reset-btn';
+        btn.textContent = '↺ Reset to auto';
+        btn.onclick = resetPresenterNotes;
+        btn.title = 'Discard edits, regenerate from auto';
+        toolbar.insertBefore(btn, toolbar.querySelector('.notes-status'));
+    }
+}
+
+function resetPresenterNotes() {
+    const body = document.getElementById("presenterNotesBody");
+    if (!body) return;
+    const toolbar = body.querySelector('.notes-toolbar');
+    if (!toolbar) return;
+    const key = toolbar.getAttribute('data-key');
+    if (!key) return;
+
+    if (!confirm('Reset these notes to auto-generated? Your custom edits for this section will be lost.')) return;
+
+    localStorage.removeItem(key);
+    render(); // re-render the whole section which triggers renderSpeakerNotes fresh
 }
 
 function renderList(cls, title, items, ordered) {

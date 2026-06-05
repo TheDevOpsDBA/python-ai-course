@@ -761,3 +761,62 @@
         display: none;
     }
 }
+
+
+/* ============================================================ */
+/* EDITABLE SPEAKER NOTES — toolbar + contenteditable styling   */
+/* ============================================================ */
+.notes-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    flex-wrap: wrap;
+}
+.notes-save-btn,
+.notes-reset-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.15s, transform 0.1s;
+}
+.notes-save-btn {
+    background: linear-gradient(135deg, #00d4aa, #6366f1);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 212, 170, 0.25);
+}
+.notes-save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 212, 170, 0.35); }
+.notes-reset-btn {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+.notes-reset-btn:hover { background: rgba(245, 158, 11, 0.22); }
+.notes-status {
+    margin-left: auto;
+    font-size: 11px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Editable sections — outline on focus to show what's being edited */
+.notes-section[contenteditable="true"],
+.notes-cta[contenteditable="true"] {
+    outline: none;
+    border-radius: 6px;
+    transition: box-shadow 0.2s;
+}
+.notes-section[contenteditable="true"]:focus,
+.notes-section[contenteditable="true"]:focus-within,
+.notes-cta[contenteditable="true"]:focus {
+    box-shadow: inset 0 0 0 2px rgba(99, 102, 241, 0.35);
+    background: rgba(99, 102, 241, 0.03);
+}
+.notes-section[contenteditable="true"]:hover {
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.15);
+}
