@@ -406,13 +406,13 @@ function updateGamificationUI() {
     const nameEl = document.getElementById('userName');
     if (nameEl) {
         const name = localStorage.getItem('labUserName') || 'Student';
-        nameEl.textContent = '?? ' + name;
+        nameEl.textContent = '🔒 ' + name;
         nameEl.onclick = function() {
             const newName = prompt('Change your display name:', name);
             if (newName && newName.trim()) {
                 const trimmed = newName.trim();
                 localStorage.setItem('labUserName', trimmed);
-                nameEl.textContent = '?? ' + trimmed;
+                nameEl.textContent = '🔒 ' + trimmed;
                 // Sync display name to Firebase profile + DB
                 if (currentUser && !currentUser.isGuest && window.fbHelpers) {
                     window.fbHelpers.updateName(trimmed).catch(()=>{});
@@ -750,7 +750,7 @@ function bootAuth() {
                                 Array.from(sel.options).forEach((opt, i) => {
                                     const m = courseData.modules[i];
                                     if (!m) return;
-                                    opt.textContent = (isModuleLocked(i) ? '?? ' : '') + m.title;
+                                    opt.textContent = (isModuleLocked(i) ? '\uD83D\uDD12 ' : '') + m.title;
                                     opt.style.color = isModuleLocked(i) ? '#94a3b8' : '';
                                 });
                             }
@@ -1016,7 +1016,7 @@ function loadModules() {
         const option = document.createElement("option");
 
         option.value = index;
-        const lockMark = isModuleLocked(index) ? '?? ' : '';
+        const lockMark = isModuleLocked(index) ? '\uD83D\uDD12 ' : '';
         option.textContent = lockMark + module.title;
         if (isModuleLocked(index)) option.style.color = '#94a3b8';
 
@@ -1094,7 +1094,7 @@ function renderSection() {
         document.getElementById('labObjTime').textContent = '? ' + obj.duration;
 
         const diffEl = document.getElementById('labObjDifficulty');
-        diffEl.textContent = '?? ' + obj.difficulty;
+        diffEl.textContent = '🔒 ' + obj.difficulty;
         diffEl.className = 'lab-obj-badge difficulty ' + obj.difficulty.toLowerCase();
 
         document.getElementById('labObjSkills').innerHTML = obj.skills.map(s => '<span>' + s + '</span>').join('');
@@ -1172,7 +1172,7 @@ function renderSection() {
 
     // Update file badge
     if (section.examples && section.examples.length > 0) {
-        document.getElementById('fileBadge').textContent = '?? ' + section.examples[0].name + '.py';
+        document.getElementById('fileBadge').textContent = '🔒 ' + section.examples[0].name + '.py';
     } else {
         document.getElementById('fileBadge').textContent = '?? scratch.py';
     }
@@ -2370,7 +2370,7 @@ function renderLockedSection() {
     }
     card.style.display = 'block';
     card.innerHTML = `
-        <div class="locked-card-icon">??</div>
+        <div class="locked-card-icon">\uD83D\uDD12</div>
         <div class="locked-card-title">${escapeHtml(module.title)} is part of the paid course</div>
         <p class="locked-card-text">
             Modules 1�${PREVIEW_MODULE_LIMIT} are free for everyone. To unlock the rest � including
@@ -2378,7 +2378,7 @@ function renderLockedSection() {
             enrol on PowerShell Academy.
         </p>
         <div class="locked-card-actions">
-            <a href="${ENROLL_URL}" target="_blank" class="locked-card-cta">?? Enrol on PowerShell Academy</a>
+            <a href="${ENROLL_URL}" target="_blank" class="locked-card-cta">\uD83D\uDE80 Enrol on PowerShell Academy</a>
             <button class="locked-card-secondary" onclick="goToFirstUnlockedModule()">? Back to free modules</button>
         </div>
         <p class="locked-card-tip">
