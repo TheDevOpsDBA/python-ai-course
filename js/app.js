@@ -78,18 +78,18 @@ const LEVELS = [
 ];
 
 const BADGES = [
-    { id: "first-steps", name: "First Steps", icon: "??", desc: "Complete your first section" },
-    { id: "first-run", name: "First Run", icon: "??", desc: "Run code for the first time" },
-    { id: "python-beginner", name: "Python Beginner", icon: "??", desc: "Complete Python Basics module" },
-    { id: "collection-master", name: "Collection Master", icon: "??", desc: "Complete Collections module" },
-    { id: "flow-controller", name: "Flow Controller", icon: "??", desc: "Complete Control Flow module" },
-    { id: "function-builder", name: "Function Builder", icon: "??", desc: "Complete Functions module" },
-    { id: "error-handler", name: "Error Handler", icon: "???", desc: "Complete Error Handling module" },
-    { id: "ai-explorer", name: "AI Explorer", icon: "??", desc: "Complete AI & ML module" },
-    { id: "lab-rat", name: "Lab Rat", icon: "??", desc: "Complete 5 lab challenges" },
-    { id: "streak-hero", name: "Streak Hero", icon: "??", desc: "Maintain a 7-day streak" },
-    { id: "code-runner", name: "Code Runner", icon: "??", desc: "Run code 50 times" },
-    { id: "champion", name: "Course Champion", icon: "??", desc: "Complete all modules" }
+    { id: "first-steps", name: "First Steps", icon: "👣", desc: "Complete your first section" },
+    { id: "first-run", name: "First Run", icon: "▶️", desc: "Run code for the first time" },
+    { id: "python-beginner", name: "Python Beginner", icon: "🐍", desc: "Complete Python Basics module" },
+    { id: "collection-master", name: "Collection Master", icon: "📦", desc: "Complete Collections module" },
+    { id: "flow-controller", name: "Flow Controller", icon: "🔀", desc: "Complete Control Flow module" },
+    { id: "function-builder", name: "Function Builder", icon: "⚙️", desc: "Complete Functions module" },
+    { id: "error-handler", name: "Error Handler", icon: "🛡️", desc: "Complete Error Handling module" },
+    { id: "ai-explorer", name: "AI Explorer", icon: "🤖", desc: "Complete AI & ML module" },
+    { id: "lab-rat", name: "Lab Rat", icon: "🧪", desc: "Complete 5 lab challenges" },
+    { id: "streak-hero", name: "Streak Hero", icon: "🔥", desc: "Maintain a 7-day streak" },
+    { id: "code-runner", name: "Code Runner", icon: "🏃", desc: "Run code 50 times" },
+    { id: "champion", name: "Course Champion", icon: "🏆", desc: "Complete all modules" }
 ];
 
 function getProgressKey() {
@@ -331,7 +331,7 @@ function maybeShowResumeBanner() {
     const banner = document.getElementById('resumeBanner');
     if (!banner) return;
     document.getElementById('resumeText').innerHTML =
-        '?? Welcome back! Resume from <strong>' + mod.title + '</strong> &raquo; <strong>' + sec.title + '</strong>?';
+        '\u{1F44B} Welcome back! Resume from <strong>' + mod.title + '</strong> &raquo; <strong>' + sec.title + '</strong>?';
     banner.style.display = 'flex';
 
     document.getElementById('resumeYes').onclick = () => {
@@ -400,7 +400,7 @@ function updateGamificationUI() {
 
     // Streak
     updateStreak();
-    document.getElementById("streakDisplay").textContent = "??" + progress.streak.current;
+    document.getElementById("streakDisplay").textContent = "\u{1F525}" + progress.streak.current;
 
     // Show user name
     const nameEl = document.getElementById('userName');
@@ -480,7 +480,7 @@ function showXPFloat(text) {
 
 function showLevelUp(levelInfo) {
     const banner = document.getElementById("levelupBanner");
-    document.getElementById("levelupText").textContent = "?? Level " + levelInfo.level + " � " + levelInfo.title + "!";
+    document.getElementById("levelupText").textContent = "\u2B06\uFE0F Level " + levelInfo.level + " � " + levelInfo.title + "!";
     banner.style.display = "block";
     banner.style.animation = "none";
     void banner.offsetWidth;
@@ -755,7 +755,7 @@ function bootAuth() {
                                 });
                             }
                             if (wasLocked && nowUnlocked) {
-                                showToast('?? Course unlocked! Welcome.');
+                                showToast('\u{1F513} Course unlocked! Welcome.');
                                 renderSection();
                             }
                         });
@@ -1174,7 +1174,7 @@ function renderSection() {
     if (section.examples && section.examples.length > 0) {
         document.getElementById('fileBadge').textContent = '🔒 ' + section.examples[0].name + '.py';
     } else {
-        document.getElementById('fileBadge').textContent = '?? scratch.py';
+        document.getElementById('fileBadge').textContent = '📄 scratch.py';
     }
 
     // Update line count
@@ -1350,7 +1350,7 @@ function clearOutput() {
 function copyCode() {
     const code = editor.getValue();
     navigator.clipboard.writeText(code).then(() => {
-        showToast('?? Code copied to clipboard!');
+        showToast('\u{1F4CB} Code copied to clipboard!');
     });
 }
 
@@ -1441,7 +1441,7 @@ function nextSection() {
         currentModule++;
         currentSection = 0;
 
-        showToast('?? Module Complete!');
+        showToast('\u{1F389} Module Complete!');
         addXP(50, "Module complete");
 
         loadSections();
@@ -1569,7 +1569,7 @@ function addChatMessage(text, role, opts) {
     
     const avatar = document.createElement("div");
     avatar.className = "ai-msg-avatar";
-    avatar.textContent = isUser ? "??" : "??";
+    avatar.textContent = isUser ? "\u{1F464}" : "\u{1F916}";
     
     const bubble = document.createElement("div");
     bubble.className = "ai-msg-bubble";
@@ -1603,7 +1603,7 @@ function restoreChatHistory(sectionId) {
     // Reset to the welcome state
     messages.innerHTML =
         '<div class="ai-msg assistant">' +
-            '<div class="ai-msg-avatar">??</div>' +
+            '<div class="ai-msg-avatar">\u{1F916}</div>' +
             '<div class="ai-msg-bubble">Hey! I\'m your AI mentor for this module. I can see your code and output � ask me anything!</div>' +
         '</div>';
 
@@ -1617,7 +1617,7 @@ function restoreChatHistory(sectionId) {
         wrap.className = "ai-msg " + (isUser ? "user" : "assistant");
         const av = document.createElement("div");
         av.className = "ai-msg-avatar";
-        av.textContent = isUser ? "??" : "??";
+        av.textContent = isUser ? "\u{1F464}" : "\u{1F916}";
         const b = document.createElement("div");
         b.className = "ai-msg-bubble";
         b.innerHTML = m.text;
@@ -1748,8 +1748,8 @@ Evaluate the code. Be encouraging and beginner-friendly. Format your response EX
 VERDICT: PASS or NEEDS_WORK
 ? [list what they got right, one per line]
 ? [list what's missing or wrong, one per line, only if NEEDS_WORK]
-?? [one specific improvement tip]
-?? [one sentence of encouragement]`;
+💡 [one specific improvement tip]
+🎉 [one sentence of encouragement]`;
 
     // Use the AI to evaluate
     callAIForLab(evalPrompt, feedback);
@@ -1791,7 +1791,7 @@ async function callAIForLab(prompt, feedbackEl, onResult) {
                 let answer = data.choices[0].message.content;
                 const isPass = /VERDICT:\s*PASS\b/i.test(answer);
                 feedbackEl.className = 'lab-feedback ' + (isPass ? 'pass' : 'needs-work');
-                answer = answer.replace(/VERDICT:\s*(PASS|NEEDS_WORK)/gi, isPass ? '? PASS � Well done!' : '?? NEEDS WORK � Keep trying!');
+                answer = answer.replace(/VERDICT:\s*(PASS|NEEDS_WORK)/gi, isPass ? '? PASS � Well done!' : '\u{1F504} NEEDS WORK � Keep trying!');
                 answer = answer.replace(/\n/g, '<br>');
                 feedbackEl.innerHTML = answer;
                 if (isPass) { trackLabComplete(); addXP(25, "Lab passed"); }
@@ -1810,7 +1810,7 @@ function showHint() {
     const feedback = document.getElementById('labFeedback');
     feedback.style.display = 'block';
     feedback.className = 'lab-feedback';
-    feedback.innerHTML = '?? <strong>Hint:</strong> ' + section.lab.hint;
+    feedback.innerHTML = '\u{1F4A1} <strong>Hint:</strong> ' + section.lab.hint;
 }
 
 function showSolution() {
@@ -1819,7 +1819,7 @@ function showSolution() {
     const feedback = document.getElementById('labFeedback');
     feedback.style.display = 'block';
     feedback.className = 'lab-feedback';
-    feedback.innerHTML = '?? <strong>Solution:</strong><br><pre style="background:#111827;padding:10px;border-radius:6px;margin-top:8px;color:#00d4aa;font-size:12px;white-space:pre-wrap;">' + section.lab.solution + '</pre>';
+    feedback.innerHTML = '\u{1F441} <strong>Solution:</strong><br><pre style="background:#111827;padding:10px;border-radius:6px;margin-top:8px;color:#00d4aa;font-size:12px;white-space:pre-wrap;">' + section.lab.solution + '</pre>';
 }
 
 // ===== CHALLENGE MODE =====
@@ -1942,7 +1942,7 @@ function showChallengeList() {
             cardClass = ' completed';
         } else if (attendedOnly) {
             statusClass = 'attended';
-            statusText = '?? Solution viewed';
+            statusText = '👁 Solution viewed';
             cardClass = ' attended';
         }
 
@@ -2019,9 +2019,9 @@ function showChallengeLockedNotice(completedByPass) {
     feedback.style.display = 'block';
     feedback.className = 'challenge-feedback locked';
     if (completedByPass) {
-        feedback.innerHTML = '?? <strong>Challenge complete.</strong> The official solution is shown for reference. Editor is locked.';
+        feedback.innerHTML = '\u{1F512} <strong>Challenge complete.</strong> The official solution is shown for reference. Editor is locked.';
     } else {
-        feedback.innerHTML = '?? <strong>Solution viewed � challenge attended (no XP).</strong> The official solution is shown for reference. Editor is locked and this challenge cannot be retried.';
+        feedback.innerHTML = '\u{1F441} <strong>Solution viewed � challenge attended (no XP).</strong> The official solution is shown for reference. Editor is locked and this challenge cannot be retried.';
     }
 }
 
@@ -2068,8 +2068,8 @@ Be very encouraging. Respond:
 VERDICT: PASS or NEEDS_WORK
 ? What's correct
 ? What's missing (only if NEEDS_WORK)
-?? One tip
-?? Encouragement`;
+\u{1F4A1} One tip
+\u{1F389} Encouragement`;
 
     // Pass a callback so we can mark the challenge complete the moment AI says PASS,
     // instead of racing against a setTimeout.
@@ -2085,7 +2085,7 @@ function markChallengeComplete(challengeId) {
     completed.push(challengeId);
     localStorage.setItem('completedChallenges', JSON.stringify(completed));
     addXP(30, 'Challenge completed');
-    showToast('?? Challenge completed! +30 XP');
+    showToast('\u{1F3C6} Challenge completed! +30 XP');
 
     const progressLabel = document.getElementById('challengeProgress');
     if (progressLabel) progressLabel.textContent = completed.length + '/' + CHALLENGES.length + ' completed';
@@ -2108,10 +2108,10 @@ function showChallengeHint() {
     feedback.className = 'challenge-feedback';
     
     if (challengeHintIndex < currentChallenge.hints.length) {
-        feedback.innerHTML = '?? <strong>Hint ' + (challengeHintIndex + 1) + ':</strong> ' + currentChallenge.hints[challengeHintIndex];
+        feedback.innerHTML = '\u{1F4A1} <strong>Hint ' + (challengeHintIndex + 1) + ':</strong> ' + currentChallenge.hints[challengeHintIndex];
         challengeHintIndex++;
     } else {
-        feedback.innerHTML = '?? No more hints available. Try the solution button!';
+        feedback.innerHTML = '\u{1F4A1} No more hints available. Try the solution button!';
     }
 }
 
@@ -2157,10 +2157,10 @@ function showChallengeSolution() {
     feedback.className = 'challenge-feedback locked';
 
     if (isAlreadyCompleted) {
-        feedback.innerHTML = '?? <strong>Official solution shown above.</strong> Editor is locked.';
+        feedback.innerHTML = '\u{1F441} <strong>Official solution shown above.</strong> Editor is locked.';
     } else {
-        feedback.innerHTML = '?? <strong>Solution shown � challenge attended (no XP awarded).</strong> Editor is locked. This challenge cannot be retried.';
-        showToast('?? Challenge attended � no XP earned');
+        feedback.innerHTML = '\u{1F441} <strong>Solution shown � challenge attended (no XP awarded).</strong> Editor is locked. This challenge cannot be retried.';
+        showToast('\u{1F441} Challenge attended � no XP earned');
     }
 
     // Refresh challenge list summary so the badge shows up
@@ -2226,14 +2226,14 @@ function renderLeaderboardList(users) {
     courseUsers.forEach((u, i) => {
         const rank = i + 1;
         const isMe = currentUser && u.uid === currentUser.uid;
-        const medal = rank === 1 ? '??' : rank === 2 ? '??' : rank === 3 ? '??' : '#' + rank;
+        const medal = rank === 1 ? '\u{1F947}' : rank === 2 ? '\u{1F948}' : rank === 3 ? '\u{1F949}' : '#' + rank;
         const name = (u.displayName || 'Anonymous').replace(/[<>]/g, '');
         html += `<div class="leaderboard-row${isMe ? ' me' : ''}">
             <span class="lb-rank">${medal}</span>
             <span class="lb-name">${name}${isMe ? ' <em>(you)</em>' : ''}</span>
             <span class="lb-level">Lv.${u.level || 1}</span>
             <span class="lb-xp">${u.xp || 0} XP</span>
-            <span class="lb-badges">?? ${(u.badges || []).length}</span>
+            <span class="lb-badges">\u{1F3C5} ${(u.badges || []).length}</span>
         </div>`;
     });
 
@@ -2382,7 +2382,7 @@ function renderLockedSection() {
             <button class="locked-card-secondary" onclick="goToFirstUnlockedModule()">? Back to free modules</button>
         </div>
         <p class="locked-card-tip">
-            ?? <strong>Important:</strong> when you enrol, use the
+            ⚠️ <strong>Important:</strong> when you enrol, use the
             <strong>same email</strong> you signed in with here (<code>${escapeHtml((currentUser && currentUser.email) || 'your-email@example.com')}</code>).
             That's how the lab automatically unlocks for you.
             <br><br>
@@ -2398,7 +2398,7 @@ function renderLockedSection() {
     if (toggleBtn) toggleBtn.classList.remove('has-code');
 
     const breadcrumb = document.getElementById('breadcrumb');
-    if (breadcrumb) breadcrumb.textContent = module.title + ' > ?? Locked';
+    if (breadcrumb) breadcrumb.textContent = module.title + ' > \u{1F512} Locked';
     const totalInModule = module.sections.length;
     const indicator = document.getElementById('sectionIndicator');
     if (indicator) indicator.textContent = (currentSection + 1) + ' / ' + totalInModule;
@@ -2420,7 +2420,7 @@ async function recheckEntitlement() {
         await claimPendingViaWorker(currentUser.uid, currentUser.email || "");
         currentEntitlement = await window.fbHelpers.loadEntitlement(currentUser.uid);
         if (hasFullAccess()) {
-            showToast('?? Access granted!');
+            showToast('\u{1F513} Access granted!');
             renderSection();
         } else {
             showToast('No active entitlement found yet. Try again in a moment.');
