@@ -16,7 +16,7 @@ let lastSessionSaveTimer = null; // debounced last-session save
 let chatHistory = [];            // in-memory current section's chat (synced w/ localStorage)
 let cloudHydrated = false;       // becomes true once cloud data has been merged in
 
-// Cloudflare Worker — session-based access
+// Cloudflare Worker ï¿½ session-based access
 const WORKER_BASE = "https://graphy-enrollment-webhook.powershell4u.workers.dev";
 
 let labSession = null;
@@ -105,7 +105,7 @@ function getProgress() {
         const key = getProgressKey();
         const saved = localStorage.getItem(key);
         if (saved) return { ...defaults, ...JSON.parse(saved) };
-        // Legacy "pythonLabProgress" is intentionally NOT auto-migrated here — it
+        // Legacy "pythonLabProgress" is intentionally NOT auto-migrated here ï¿½ it
         // contained XP from whichever course wrote last, so copying it forward
         // would leak progress between courses. Cloud is the source of truth on
         // sign-in. We only clear the legacy key so future reads start clean.
@@ -148,7 +148,7 @@ function syncProgressToCloud(progress) {
 }
 
 // ============================================================
-// SESSION PERSISTENCE — last position, editor code, chat memory
+// SESSION PERSISTENCE ï¿½ last position, editor code, chat memory
 // ============================================================
 
 const STORAGE_KEYS = {
@@ -198,7 +198,7 @@ function saveEditorCode(sectionId, code) {
     try {
         localStorage.setItem(STORAGE_KEYS.editorPrefix + sectionId, code);
     } catch (e) {
-        // Quota exceeded — prune oldest editor entries
+        // Quota exceeded ï¿½ prune oldest editor entries
         pruneEditorStorage();
         try { localStorage.setItem(STORAGE_KEYS.editorPrefix + sectionId, code); } catch (_) {}
     }
@@ -228,7 +228,7 @@ function pruneEditorStorage() {
         if (k && k.startsWith(STORAGE_KEYS.editorPrefix)) keys.push(k);
     }
     if (keys.length <= MAX_EDITOR_SECTIONS) return;
-    // We don't track per-key timestamps separately — just drop the first N keys
+    // We don't track per-key timestamps separately ï¿½ just drop the first N keys
     keys.slice(0, keys.length - MAX_EDITOR_SECTIONS).forEach(k => localStorage.removeItem(k));
 }
 
@@ -240,7 +240,7 @@ function saveChatHistory(sectionId, messages) {
     try {
         localStorage.setItem(STORAGE_KEYS.chatPrefix + sectionId, JSON.stringify(trimmed));
     } catch (e) {
-        // Storage full — drop the oldest chat entry, retry once
+        // Storage full ï¿½ drop the oldest chat entry, retry once
         const k = findOldestChatKey();
         if (k) localStorage.removeItem(k);
         try { localStorage.setItem(STORAGE_KEYS.chatPrefix + sectionId, JSON.stringify(trimmed)); } catch (_) {}
@@ -277,7 +277,7 @@ function showSaveStatus(state) {
     if (!el) return;
     el.classList.remove('saving', 'saved', 'synced', 'error', 'local');
     switch (state) {
-        case 'saving': el.classList.add('saving'); el.textContent = '? Saving…'; break;
+        case 'saving': el.classList.add('saving'); el.textContent = '? Savingï¿½'; break;
         case 'saved':  el.classList.add('saved');  el.textContent = '? Saved';    break;
         case 'synced': el.classList.add('synced'); el.textContent = '? Synced';   break;
         case 'error':  el.classList.add('error');  el.textContent = '? Sync failed'; break;
@@ -477,7 +477,7 @@ function showXPFloat(text) {
 
 function showLevelUp(levelInfo) {
     const banner = document.getElementById("levelupBanner");
-    document.getElementById("levelupText").textContent = "?? Level " + levelInfo.level + " — " + levelInfo.title + "!";
+    document.getElementById("levelupText").textContent = "?? Level " + levelInfo.level + " ï¿½ " + levelInfo.title + "!";
     banner.style.display = "block";
     banner.style.animation = "none";
     void banner.offsetWidth;
@@ -630,7 +630,7 @@ async function initializeApp() {
         setTimeout(() => {
             if (!booted) {
                 booted = true;
-                console.warn("Firebase did not load — running in local-only mode.");
+                console.warn("Firebase did not load ï¿½ running in local-only mode.");
                 hideAuthScreen();
                 hideBootSplash();
                 if (!localStorage.getItem('labUserName')) localStorage.setItem('labUserName', 'Student');
@@ -770,10 +770,10 @@ function bootAuth() {
             hideBootSplash();
             startMainApp();
         } else {
-            // Signed out — show login (guest still allowed)
+            // Signed out ï¿½ show login (guest still allowed)
             currentUser = null;
             hideBootSplash();
-            showAuthScreen();
+            hideAuthScreen(); startMainApp();
         }
     });
 }
@@ -788,7 +788,7 @@ function mergeCloudIntoLocal(cloud) {
     const local = getProgress();
 
     // If the cloud was reset by an admin AFTER our last local save, the cloud
-    // is authoritative — wipe local. Otherwise merge optimistically.
+    // is authoritative ï¿½ wipe local. Otherwise merge optimistically.
     const cloudResetAt = typeof cloud.resetAt === 'number' ? cloud.resetAt : 0;
     const localSavedAt = typeof local.lastSavedAt === 'number' ? local.lastSavedAt : 0;
     const cloudWins = cloudResetAt > 0 && cloudResetAt >= localSavedAt;
@@ -809,7 +809,7 @@ function mergeCloudIntoLocal(cloud) {
         localStorage.setItem(getProgressKey(), JSON.stringify(merged));
         localStorage.setItem('completedChallenges',     JSON.stringify(cloud.completedChallenges || []));
         localStorage.setItem('viewedChallengeSolutions', JSON.stringify(cloud.viewedChallengeSolutions || []));
-        console.info("Cloud reset detected — local progress replaced with cloud snapshot.");
+        console.info("Cloud reset detected ï¿½ local progress replaced with cloud snapshot.");
     } else {
         merged = {
             ...local,
@@ -830,7 +830,7 @@ function mergeCloudIntoLocal(cloud) {
         localStorage.setItem('viewedChallengeSolutions', JSON.stringify(Array.from(new Set([...localViewed, ...cloudViewed]))));
     }
 
-    // Cloud's display name might be older than the in-memory current name —
+    // Cloud's display name might be older than the in-memory current name ï¿½
     // bootAuth has already chosen the correct one. Don't overwrite it.
     if (cloud.displayName && !currentUser) localStorage.setItem('labUserName', cloud.displayName);
 
@@ -854,7 +854,7 @@ function mergeCloudIntoLocal(cloud) {
 }
 
 // Pull every section's editor code + chat into localStorage so opening a section
-// instantly shows what the user last had — no extra round-trips needed.
+// instantly shows what the user last had ï¿½ no extra round-trips needed.
 function hydrateEditorAndChatFromCloud({ editorState, chatHistory: chatMap }) {
     if (editorState && typeof editorState === 'object') {
         Object.keys(editorState).forEach(sectionId => {
@@ -1060,7 +1060,7 @@ function renderSection() {
         courseData.modules[currentModule]
         .sections[currentSection];
 
-    // Entitlement gate — modules beyond the preview limit need an active entitlement.
+    // Entitlement gate ï¿½ modules beyond the preview limit need an active entitlement.
     if (isModuleLocked(currentModule)) {
         renderLockedSection();
         return;
@@ -1565,7 +1565,7 @@ function addChatMessage(text, role, opts) {
     messages.appendChild(msg);
     messages.scrollTop = messages.scrollHeight;
 
-    // Persist message unless caller opted out (e.g. transient "thinking…" indicator)
+    // Persist message unless caller opted out (e.g. transient "thinkingï¿½" indicator)
     if (!(opts && opts.transient) && !role.includes("loading")) {
         const sec = courseData.modules[currentModule] &&
             courseData.modules[currentModule].sections[currentSection];
@@ -1589,7 +1589,7 @@ function restoreChatHistory(sectionId) {
     messages.innerHTML =
         '<div class="ai-msg assistant">' +
             '<div class="ai-msg-avatar">??</div>' +
-            '<div class="ai-msg-bubble">Hey! I\'m your AI mentor for this module. I can see your code and output — ask me anything!</div>' +
+            '<div class="ai-msg-bubble">Hey! I\'m your AI mentor for this module. I can see your code and output ï¿½ ask me anything!</div>' +
         '</div>';
 
     chatHistory = loadChatHistory(sectionId);
@@ -1776,7 +1776,7 @@ async function callAIForLab(prompt, feedbackEl, onResult) {
                 let answer = data.choices[0].message.content;
                 const isPass = /VERDICT:\s*PASS\b/i.test(answer);
                 feedbackEl.className = 'lab-feedback ' + (isPass ? 'pass' : 'needs-work');
-                answer = answer.replace(/VERDICT:\s*(PASS|NEEDS_WORK)/gi, isPass ? '? PASS — Well done!' : '?? NEEDS WORK — Keep trying!');
+                answer = answer.replace(/VERDICT:\s*(PASS|NEEDS_WORK)/gi, isPass ? '? PASS ï¿½ Well done!' : '?? NEEDS WORK ï¿½ Keep trying!');
                 answer = answer.replace(/\n/g, '<br>');
                 feedbackEl.innerHTML = answer;
                 if (isPass) { trackLabComplete(); addXP(25, "Lab passed"); }
@@ -1944,7 +1944,7 @@ function showChallengeList() {
 
     const attendedOnlyCount = viewed.filter(id => !completed.includes(id)).length;
     const summary = completed.length + '/' + CHALLENGES.length + ' completed' +
-        (attendedOnlyCount > 0 ? ' • ' + attendedOnlyCount + ' attended' : '');
+        (attendedOnlyCount > 0 ? ' ï¿½ ' + attendedOnlyCount + ' attended' : '');
     document.getElementById('challengeProgress').textContent = summary;
 }
 
@@ -2006,7 +2006,7 @@ function showChallengeLockedNotice(completedByPass) {
     if (completedByPass) {
         feedback.innerHTML = '?? <strong>Challenge complete.</strong> The official solution is shown for reference. Editor is locked.';
     } else {
-        feedback.innerHTML = '?? <strong>Solution viewed — challenge attended (no XP).</strong> The official solution is shown for reference. Editor is locked and this challenge cannot be retried.';
+        feedback.innerHTML = '?? <strong>Solution viewed ï¿½ challenge attended (no XP).</strong> The official solution is shown for reference. Editor is locked and this challenge cannot be retried.';
     }
 }
 
@@ -2107,7 +2107,7 @@ function showChallengeSolution() {
     const isAlreadyCompleted = completed.includes(currentChallenge.id);
     const feedback = document.getElementById('challengeFeedback');
 
-    // Confirm before revealing — viewing the solution permanently locks the editor.
+    // Confirm before revealing ï¿½ viewing the solution permanently locks the editor.
     let confirmMsg;
     if (isAlreadyCompleted) {
         confirmMsg = 'You\u2019ve already completed this challenge. Viewing the official solution will lock the editor for reference.\n\nProceed?';
@@ -2144,8 +2144,8 @@ function showChallengeSolution() {
     if (isAlreadyCompleted) {
         feedback.innerHTML = '?? <strong>Official solution shown above.</strong> Editor is locked.';
     } else {
-        feedback.innerHTML = '?? <strong>Solution shown — challenge attended (no XP awarded).</strong> Editor is locked. This challenge cannot be retried.';
-        showToast('?? Challenge attended — no XP earned');
+        feedback.innerHTML = '?? <strong>Solution shown ï¿½ challenge attended (no XP awarded).</strong> Editor is locked. This challenge cannot be retried.';
+        showToast('?? Challenge attended ï¿½ no XP earned');
     }
 
     // Refresh challenge list summary so the badge shows up
@@ -2155,7 +2155,7 @@ function showChallengeSolution() {
         const completedCount = completed.length;
         const attendedOnly = viewed.filter(id => !completed.includes(id)).length;
         progressLabel.textContent = completedCount + '/' + total + ' completed' +
-            (attendedOnly > 0 ? ' • ' + attendedOnly + ' attended' : '');
+            (attendedOnly > 0 ? ' ï¿½ ' + attendedOnly + ' attended' : '');
     }
 }
 
@@ -2191,7 +2191,7 @@ function closeLeaderboard() {
 }
 
 function renderLeaderboard() {
-    document.getElementById('leaderboardList').innerHTML = '<div class="leaderboard-loading">Loading…</div>';
+    document.getElementById('leaderboardList').innerHTML = '<div class="leaderboard-loading">Loadingï¿½</div>';
     document.getElementById('leaderboardFooter').textContent = '';
 }
 
@@ -2200,7 +2200,7 @@ function renderLeaderboardList(users) {
     const footer = document.getElementById('leaderboardFooter');
 
     if (!users || users.length === 0) {
-        list.innerHTML = '<div class="leaderboard-empty">No participants yet — be the first!</div>';
+        list.innerHTML = '<div class="leaderboard-empty">No participants yet ï¿½ be the first!</div>';
         return;
     }
 
@@ -2244,9 +2244,9 @@ async function resetMyProgress() {
     const ok = confirm(
         `Reset all your progress for ${courseId}?\n\n` +
         `This will:\n` +
-        `  • Clear cached XP, badges, completed sections and challenges (this device)\n` +
-        `  • Zero your progress on the cloud (all your devices)\n` +
-        `  • Keep your sign-in account and your work on OTHER courses intact\n\n` +
+        `  ï¿½ Clear cached XP, badges, completed sections and challenges (this device)\n` +
+        `  ï¿½ Zero your progress on the cloud (all your devices)\n` +
+        `  ï¿½ Keep your sign-in account and your work on OTHER courses intact\n\n` +
         `This cannot be undone. Continue?`
     );
     if (!ok) return;
@@ -2276,7 +2276,7 @@ async function resetMyProgress() {
             await window.fbHelpers.resetUserProgress(currentUser.uid, window.fbHelpers.COURSE_ID);
         } catch (e) {
             console.warn('Cloud reset failed:', e);
-            alert('Cloud reset failed — your local cache is cleared, but please tell your instructor if your XP keeps showing the old value.');
+            alert('Cloud reset failed ï¿½ your local cache is cleared, but please tell your instructor if your XP keeps showing the old value.');
         }
     }
 
@@ -2358,8 +2358,8 @@ function renderLockedSection() {
         <div class="locked-card-icon">??</div>
         <div class="locked-card-title">${escapeHtml(module.title)} is part of the paid course</div>
         <p class="locked-card-text">
-            Modules 1–${PREVIEW_MODULE_LIMIT} are free for everyone. To unlock the rest — including
-            the AI Lab Mentor for advanced modules, hands-on challenges, and the live leaderboard —
+            Modules 1ï¿½${PREVIEW_MODULE_LIMIT} are free for everyone. To unlock the rest ï¿½ including
+            the AI Lab Mentor for advanced modules, hands-on challenges, and the live leaderboard ï¿½
             enrol on PowerShell Academy.
         </p>
         <div class="locked-card-actions">
@@ -2400,7 +2400,7 @@ async function recheckEntitlement() {
         showToast('Sign in to refresh your access.');
         return;
     }
-    showToast('Checking access…');
+    showToast('Checking accessï¿½');
     try {
         await claimPendingViaWorker(currentUser.uid, currentUser.email || "");
         currentEntitlement = await window.fbHelpers.loadEntitlement(currentUser.uid);
@@ -2411,7 +2411,7 @@ async function recheckEntitlement() {
             showToast('No active entitlement found yet. Try again in a moment.');
         }
     } catch (e) {
-        showToast('Could not check access — please refresh the page.');
+        showToast('Could not check access ï¿½ please refresh the page.');
     }
 }
 
