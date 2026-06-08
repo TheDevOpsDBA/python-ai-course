@@ -16,6 +16,9 @@ let lastSessionSaveTimer = null; // debounced last-session save
 let chatHistory = [];            // in-memory current section's chat (synced w/ localStorage)
 let cloudHydrated = false;       // becomes true once cloud data has been merged in
 
+const PREVIEW_MODULE_LIMIT = 3;
+const ENROLL_URL = "https://www.powershellacademy.com/s/store";
+
 // Cloudflare Worker � session-based access
 const WORKER_BASE = "https://graphy-enrollment-webhook.powershell4u.workers.dev";
 
