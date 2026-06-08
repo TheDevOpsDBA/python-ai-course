@@ -770,10 +770,22 @@ function bootAuth() {
             hideBootSplash();
             startMainApp();
         } else {
-            // Signed out � show login (guest still allowed)
+            // Not signed in — try Firebase auto-sign-in via Worker session
+            if (hasFullAccess() && labSession && labSession.email) {
+                try {
+                    const sessionToken = sessionStorage.getItem('lab_session_token') || '';
+                    const tokenRes = await fetch(WORKER_BASE + '/firebase-token?email=' + encodeURIComponent(labSession.email) + '&token=' + encodeURIComponent(sessionToken));
+                    const tokenData = await tokenRes.json();
+                    if (tokenData.firebaseToken && window.fbHelpers && window.fbHelpers.signInWithCustomToken) {
+                        await window.fbHelpers.signInWithCustomToken(tokenData.firebaseToken);
+                        return;
+                    }
+                } catch (e) { console.warn('Firebase auto-sign-in skipped:', e && e.message); }
+            }
             currentUser = null;
             hideBootSplash();
-            hideAuthScreen(); startMainApp();
+            hideAuthScreen();
+            startMainApp();
         }
     });
 }
