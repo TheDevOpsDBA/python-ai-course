@@ -942,7 +942,20 @@ body {
 
 /* Mobile */
 @media(max-width:768px) {
-    .course-sidebar { display: none; }
+    .course-sidebar {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 1000;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+    .course-sidebar.mobile-open {
+        display: block;
+    }
     .sidebar-open-btn { display: block !important; }
     .right-panel { width: 90%; }
     .panel-toggle.shifted { right: 90%; }
@@ -951,6 +964,18 @@ body {
     .top-bar { padding: 0 8px; }
     .toolbar { flex-wrap: wrap; }
     .progress-container { display: none; }
+}
+
+/* Mobile sidebar overlay backdrop */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 999;
+}
+.sidebar-backdrop.active {
+    display: block;
 }
 
 /* Lab Objective Card */
