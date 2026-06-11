@@ -949,7 +949,8 @@ function buildCourseSidebar() {
             item.onclick = (e) => {
                 e.stopPropagation();
                 if (locked) {
-                    showToast('🔒 Enrol to unlock this module.');
+                    // Navigate to the locked module so the enrollment card shows
+                    sidebarNavigateTo(mIndex, sIndex);
                     return;
                 }
                 sidebarNavigateTo(mIndex, sIndex);
@@ -2066,12 +2067,12 @@ function showChallengeList() {
         const attendedOnly = !done && viewed.includes(ch.id);
 
         let statusClass = 'pending';
-        let statusText = '? Not attempted';
+        let statusText = '\u25CB Not attempted';
         let cardClass = '';
 
         if (done) {
             statusClass = 'done';
-            statusText = '? Completed';
+            statusText = '\u2705 Completed';
             cardClass = ' completed';
         } else if (attendedOnly) {
             statusClass = 'attended';
@@ -2438,13 +2439,13 @@ function toggleStudentFullscreen() {
     const btn = document.querySelector('.fullscreen-btn');
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().then(() => {
-            if (btn) btn.innerHTML = '? Exit';
+            if (btn) btn.innerHTML = '\u26F6 Exit';
         }).catch((err) => {
             console.warn('Fullscreen request failed:', err);
         });
     } else {
         document.exitFullscreen().then(() => {
-            if (btn) btn.innerHTML = '? Fullscreen';
+            if (btn) btn.innerHTML = '\u26F6 Fullscreen';
         }).catch(() => {});
     }
 }
@@ -2453,7 +2454,7 @@ function toggleStudentFullscreen() {
 document.addEventListener('fullscreenchange', () => {
     const btn = document.querySelector('.fullscreen-btn');
     if (!btn) return;
-    btn.innerHTML = document.fullscreenElement ? '? Exit' : '? Fullscreen';
+    btn.innerHTML = document.fullscreenElement ? '\u26F6 Exit' : '\u26F6 Fullscreen';
 });
 
 // ===== Keyboard Navigation =====
