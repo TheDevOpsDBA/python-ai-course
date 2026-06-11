@@ -901,6 +901,7 @@ function startMainApp() {
     }
 
     loadModules();
+    buildCourseSidebar();
     updateGamificationUI();
     updateProgress();
 
@@ -910,6 +911,112 @@ function startMainApp() {
     // Initial save status pill state
     if (currentUser && currentUser.isGuest) showSaveStatus('local');
 }
+
+// ===== COURSE SIDEBAR =====
+
+function buildCourseSidebar() {
+    const nav = document.getElementById("sidebarNav");
+    if (!nav) return;
+    nav.innerHTML = "";
+
+    const progress = getProgress();
+    const completedSections = progress.completedSections || [];
+
+    courseData.modules.forEach((module, mIndex) => {
+        const moduleDiv = document.createElement("div");
+        moduleDiv.className = "sidebar-module" + (mIndex === currentModule ? " expanded" : "");
+        moduleDiv.dataset.moduleIndex = mIndex;
+
+        const header = document.createElement("div");
+        header.className = "sidebar-module-header" + (mIndex === currentModule ? " active" : "");
+        header.innerHTML = '<span class="sidebar-module-toggle">▶</span><span class="sidebar-module-title">' + module.title + '</span>';
+        header.onclick = () => toggleSidebarModule(mIndex);
+
+        const sections = document.createElement("div");
+        sections.className = "sidebar-sections";
+
+        module.sections.forEach((section, sIndex) => {
+            const item = document.createElement("div");
+            item.className = "sidebar-section-item"
+                + (mIndex === currentModule && sIndex === currentSection ? " active" : "")
+                + (completedSections.includes(section.id) ? " completed" : "");
+            item.textContent = section.title;
+            item.onclick = (e) => {
+                e.stopPropagation();
+                sidebarNavigateTo(mIndex, sIndex);
+            };
+            sections.appendChild(item);
+        });
+
+        moduleDiv.appendChild(header);
+        moduleDiv.appendChild(sections);
+        nav.appendChild(moduleDiv);
+    });
+}
+
+function toggleSidebarModule(mIndex) {
+    const nav = document.getElementById("sidebarNav");
+    const modules = nav.querySelectorAll(".sidebar-module");
+    const target = modules[mIndex];
+    if (target) {
+        target.classList.toggle("expanded");
+    }
+}
+
+function sidebarNavigateTo(mIndex, sIndex) {
+    currentModule = mIndex;
+    currentSection = sIndex;
+    loadSections();
+    updateSidebarHighlight();
+}
+
+function updateSidebarHighlight() {
+    const nav = document.getElementById("sidebarNav");
+    if (!nav) return;
+
+    const progress = getProgress();
+    const completedSections = progress.completedSections || [];
+
+    // Update module headers
+    nav.querySelectorAll(".sidebar-module-header").forEach((header, i) => {
+        header.classList.toggle("active", i === currentModule);
+    });
+
+    // Expand current module
+    nav.querySelectorAll(".sidebar-module").forEach((mod, i) => {
+        if (i === currentModule) {
+            mod.classList.add("expanded");
+        }
+    });
+
+    // Update section items
+    nav.querySelectorAll(".sidebar-module").forEach((mod, mIndex) => {
+        mod.querySelectorAll(".sidebar-section-item").forEach((item, sIndex) => {
+            item.classList.toggle("active", mIndex === currentModule && sIndex === currentSection);
+            // Also update completion marks
+            const section = courseData.modules[mIndex] && courseData.modules[mIndex].sections[sIndex];
+            if (section) {
+                item.classList.toggle("completed", completedSections.includes(section.id));
+            }
+        });
+    });
+}
+
+function toggleCourseSidebar() {
+    const sidebar = document.getElementById("courseSidebar");
+    const openBtn = document.getElementById("sidebarOpenBtn");
+
+    if (sidebar) {
+        sidebar.classList.toggle("collapsed");
+        if (sidebar.classList.contains("collapsed")) {
+            openBtn.style.display = "block";
+        } else {
+            openBtn.style.display = "none";
+        }
+    }
+}
+
+// ===== END COURSE SIDEBAR =====
 
 function showAuthScreen() {
     const overlay = document.getElementById('authOverlay');
@@ -1111,6 +1218,9 @@ function renderSection() {
 
     document.getElementById("sectionSelect").value =
         currentSection;
+
+    // Update sidebar highlight
+    updateSidebarHighlight();
 
     let content = section.brief || section.description;
     // Remove the h4 heading from content (it's shown separately above diagram)

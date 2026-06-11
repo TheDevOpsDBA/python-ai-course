@@ -97,7 +97,17 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
     <span class="section-indicator" id="sectionIndicator">1 / 3</span>
 </div>
 
+<button id="sidebarOpenBtn" class="sidebar-open-btn" onclick="toggleCourseSidebar()" title="Open course outline">▶ 📚</button>
+
 <div class="main-container">
+    <aside id="courseSidebar" class="course-sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">📚 Course Outline</span>
+            <button class="sidebar-toggle-btn" onclick="toggleCourseSidebar()" title="Collapse sidebar">◀</button>
+        </div>
+        <nav id="sidebarNav" class="sidebar-nav"></nav>
+    </aside>
+
     <div class="left-panel" id="leftPanel">
         <div class="lab-objective-card" id="labObjectiveCard" style="display:none;">
             <div class="lab-obj-header">
