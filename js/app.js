@@ -754,6 +754,8 @@ function bootAuth() {
                                     opt.style.color = isModuleLocked(i) ? '#94a3b8' : '';
                                 });
                             }
+                            // Rebuild sidebar to reflect new lock state
+                            if (typeof buildCourseSidebar === 'function') buildCourseSidebar();
                             if (wasLocked && nowUnlocked) {
                                 showToast('\u{1F513} Course unlocked! Welcome.');
                                 renderSection();
@@ -923,13 +925,15 @@ function buildCourseSidebar() {
     const completedSections = progress.completedSections || [];
 
     courseData.modules.forEach((module, mIndex) => {
+        const locked = isModuleLocked(mIndex);
         const moduleDiv = document.createElement("div");
-        moduleDiv.className = "sidebar-module" + (mIndex === currentModule ? " expanded" : "");
+        moduleDiv.className = "sidebar-module" + (mIndex === currentModule ? " expanded" : "") + (locked ? " locked" : "");
         moduleDiv.dataset.moduleIndex = mIndex;
 
         const header = document.createElement("div");
-        header.className = "sidebar-module-header" + (mIndex === currentModule ? " active" : "");
-        header.innerHTML = '<span class="sidebar-module-toggle">▶</span><span class="sidebar-module-title">' + module.title + '</span>';
+        header.className = "sidebar-module-header" + (mIndex === currentModule ? " active" : "") + (locked ? " locked" : "");
+        const lockIcon = locked ? '🔒 ' : '';
+        header.innerHTML = '<span class="sidebar-module-toggle">▶</span><span class="sidebar-module-title">' + lockIcon + module.title + '</span>';
         header.onclick = () => toggleSidebarModule(mIndex);
 
         const sections = document.createElement("div");
@@ -939,10 +943,15 @@ function buildCourseSidebar() {
             const item = document.createElement("div");
             item.className = "sidebar-section-item"
                 + (mIndex === currentModule && sIndex === currentSection ? " active" : "")
-                + (completedSections.includes(section.id) ? " completed" : "");
+                + (completedSections.includes(section.id) ? " completed" : "")
+                + (locked ? " locked" : "");
             item.textContent = section.title;
             item.onclick = (e) => {
                 e.stopPropagation();
+                if (locked) {
+                    showToast('🔒 Enrol to unlock this module.');
+                    return;
+                }
                 sidebarNavigateTo(mIndex, sIndex);
             };
             sections.appendChild(item);

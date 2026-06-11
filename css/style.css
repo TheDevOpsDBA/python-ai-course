@@ -903,6 +903,25 @@ body {
     color: #22c55e;
 }
 
+/* Locked sidebar items */
+.sidebar-module-header.locked {
+    color: #475569;
+}
+
+.sidebar-module-header.locked .sidebar-module-toggle {
+    color: #475569;
+}
+
+.sidebar-section-item.locked {
+    color: #374151;
+    cursor: not-allowed;
+}
+
+.sidebar-section-item.locked:hover {
+    background: transparent;
+    color: #475569;
+}
+
 /* Sidebar scrollbar */
 .course-sidebar::-webkit-scrollbar {
     width: 5px;
