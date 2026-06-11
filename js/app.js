@@ -1125,6 +1125,32 @@ async function authSignOut() {
     window.location.href = "https://graphy-enrollment-webhook.powershell4u.workers.dev/sso/logout";
 }
 
+async function authForgotPassword() {
+    const errorEl = document.getElementById('authError');
+    const email = document.getElementById('authEmail').value.trim();
+
+    if (!email) {
+        errorEl.textContent = 'Enter your email above, then click Forgot password.';
+        return;
+    }
+
+    try {
+        await window.fbHelpers.sendPasswordReset(email);
+        errorEl.style.color = '#22c55e';
+        errorEl.textContent = 'Password reset email sent! Check your inbox.';
+        setTimeout(() => { errorEl.style.color = ''; }, 5000);
+    } catch (err) {
+        const code = (err && err.code) || '';
+        if (code.includes('user-not-found')) {
+            errorEl.textContent = 'No account found with that email.';
+        } else if (code.includes('invalid-email')) {
+            errorEl.textContent = 'Please enter a valid email address.';
+        } else {
+            errorEl.textContent = 'Could not send reset email. Try again later.';
+        }
+    }
+}
+
 
 function friendlyAuthError(err) {
     const code = (err && err.code) || '';

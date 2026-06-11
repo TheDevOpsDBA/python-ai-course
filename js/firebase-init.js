@@ -17,6 +17,7 @@ import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
     GoogleAuthProvider,
     signInWithPopup,
     signInAnonymously,
@@ -84,6 +85,7 @@ window.fbHelpers = {
     signOut:         () => signOut(auth),
     signInWithCustomToken: (token) => signInWithCustomToken(auth, token),
     updateName: (displayName) => updateProfile(auth.currentUser, { displayName }),
+    sendPasswordReset: (email) => sendPasswordResetEmail(auth, email),
 
     // Load merged identity + this course's progress
     loadUser: async (uid) => {
