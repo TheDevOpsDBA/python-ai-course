@@ -320,9 +320,39 @@ body {
 
 /* Editor Area */
 .editor-area {
-    min-height: 180px;
-    max-height: 300px;
+    min-height: 100px;
+    height: 250px;
     overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Resize Handles */
+.resize-handle {
+    height: 5px;
+    background: #1e293b;
+    cursor: row-resize;
+    flex-shrink: 0;
+    position: relative;
+    transition: background 0.15s;
+}
+.resize-handle:hover,
+.resize-handle.active {
+    background: #6366f1;
+}
+.resize-handle::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 3px;
+    border-top: 1px solid #475569;
+    border-bottom: 1px solid #475569;
+}
+.resize-handle:hover::after,
+.resize-handle.active::after {
+    border-color: #fff;
 }
 
 /* Editor Action Buttons */
@@ -356,7 +386,7 @@ body {
 }
 .ide-action-btn:hover { border-color: #6366f1 !important; color: #6366f1 !important; }
 .CodeMirror {
-    height: 250px !important;
+    height: 100% !important;
     font-size: 13px;
     font-family: 'JetBrains Mono', monospace !important;
     border-radius: 0;
@@ -371,7 +401,11 @@ body {
 /* Terminal Section */
 .terminal-section {
     flex-shrink: 0;
+    min-height: 60px;
+    height: 150px;
     border-top: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
 }
 .terminal-header {
     display: flex;
@@ -401,8 +435,8 @@ body {
     padding: 10px 12px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
-    min-height: 80px;
-    max-height: 150px;
+    min-height: 40px;
+    flex: 1;
     overflow-y: auto;
     white-space: pre-wrap;
     margin: 0;
@@ -415,7 +449,9 @@ body {
     border-top: 1px solid #1e293b;
     display: flex;
     flex-direction: column;
-    min-height: 280px;
+    min-height: 44px;
+    flex: 1;
+    overflow: hidden;
 }
 .ai-mentor-header {
     display: flex;

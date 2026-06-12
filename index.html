@@ -185,9 +185,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
         </div>
 
         <!-- Code Editor Area -->
-        <div class="editor-area">
+        <div class="editor-area" id="editorArea">
             <textarea id="editor"></textarea>
         </div>
+
+        <!-- Resize Handle: Editor ↔ Terminal -->
+        <div class="resize-handle" id="resizeEditorTerminal" title="Drag to resize"></div>
 
         <!-- Action Buttons -->
         <div class="editor-actions">
@@ -198,13 +201,16 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
         </div>
 
         <!-- Terminal Output -->
-        <div class="terminal-section">
+        <div class="terminal-section" id="terminalSection">
             <div class="terminal-header">
                 <span class="terminal-title">⌂ TERMINAL</span>
                 <span class="terminal-badge">Python 3.11</span>
             </div>
             <pre id="output" class="terminal-output"><span class="terminal-prompt">>>> </span>Ready to run code...</pre>
         </div>
+
+        <!-- Resize Handle: Terminal ↔ AI Mentor -->
+        <div class="resize-handle" id="resizeTerminalMentor" title="Drag to resize"></div>
 
         <!-- AI Lab Mentor -->
         <div class="ai-mentor-section" id="aiMentorSection">
