@@ -207,14 +207,16 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
         </div>
 
         <!-- AI Lab Mentor -->
-        <div class="ai-mentor-section">
-            <div class="ai-mentor-header">
+        <div class="ai-mentor-section" id="aiMentorSection">
+            <div class="ai-mentor-header" onclick="toggleAiMentor()">
                 <div class="ai-mentor-avatar">🤖</div>
                 <div class="ai-mentor-info">
                     <span class="ai-mentor-name">AI Lab Mentor</span>
                     <span class="ai-mentor-status">● Online — watching your code</span>
                 </div>
+                <button class="ai-mentor-collapse-btn" id="aiMentorCollapseBtn" title="Collapse/Expand">▼</button>
             </div>
+            <div class="ai-mentor-body" id="aiMentorBody">
             <div class="ai-mentor-suggestions" id="mentorSuggestions">
                 <button onclick="quickAsk('Explain line 3')">Explain line 3</button>
                 <button onclick="quickAsk('Simplify this code')">Simplify this</button>
@@ -233,6 +235,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-d
                 <button onclick="sendChat()" class="ai-mentor-send">↑</button>
             </div>
             <div class="ai-mentor-footer">AI mentor for course-related questions. Responses may vary.</div>
+            </div><!-- end ai-mentor-body -->
         </div>
 
         <!-- Status Bar -->

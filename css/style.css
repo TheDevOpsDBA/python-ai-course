@@ -424,6 +424,38 @@ body {
     padding: 10px 14px;
     background: linear-gradient(135deg, #0a0f1a, #111827);
     border-bottom: 1px solid #1e293b;
+    cursor: pointer;
+    user-select: none;
+}
+.ai-mentor-header:hover {
+    background: linear-gradient(135deg, #111827, #1a2332);
+}
+.ai-mentor-collapse-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: transform 0.2s;
+}
+.ai-mentor-collapse-btn:hover {
+    color: #00d4aa;
+}
+.ai-mentor-section.collapsed .ai-mentor-collapse-btn {
+    transform: rotate(-90deg);
+}
+.ai-mentor-body {
+    display: flex;
+    flex-direction: column;
+}
+.ai-mentor-section.collapsed .ai-mentor-body {
+    display: none;
+}
+.ai-mentor-section.collapsed {
+    min-height: auto;
 }
 .ai-mentor-avatar {
     width: 32px;
