@@ -656,6 +656,8 @@ function toggleNotesSize() {
 
 function onKey(e) {
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+    if (e.target.isContentEditable) return;
+    if (e.target.closest && e.target.closest('.CodeMirror')) return;
 
     switch (e.key) {
         case "ArrowRight": e.preventDefault(); nextSection(); break;
